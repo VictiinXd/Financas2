@@ -177,6 +177,30 @@ tr:hover td{background:var(--raised)}
 .bar-bg{background:var(--raised);border-radius:4px;height:6px;overflow:hidden}
 .bar-fill{height:100%;border-radius:4px;transition:width .5s cubic-bezier(.4,0,.2,1)}
 
+/* ── BANK FILTER ── */
+.bank-filter-bar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.bank-filter-bar label{font-size:.72rem;color:var(--muted)}
+.bank-pill{font-size:.7rem;padding:4px 11px;border:1px solid var(--border);border-radius:20px;cursor:pointer;background:var(--raised);transition:all .2s;font-weight:500}
+.bank-pill:hover{border-color:rgba(255,255,255,.2)}
+.bank-pill.all.on{background:var(--accent);color:#0a0e1a;border-color:var(--accent)}
+.bank-pill.itau.on{background:var(--itau);color:#fff;border-color:var(--itau)}
+.bank-pill.inter.on{background:var(--inter);color:#fff;border-color:var(--inter)}
+.bank-pill.nubank.on{background:var(--nubank);color:#fff;border-color:var(--nubank)}
+.bank-filter-total{font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-left:auto}
+
+/* ── PAID CHECK ── */
+.exp-check{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;background:transparent}
+.exp-check.paid{background:var(--accent);border-color:var(--accent)}
+.exp-check.paid::after{content:'✓';font-size:.6rem;color:#0a0e1a;font-weight:700}
+.exp-row.paid-row{opacity:.55}
+.exp-row.paid-row .exp-name{text-decoration:line-through;color:var(--muted)}
+
+/* ── EYE TOGGLE ── */
+.eye-btn{background:none;border:none;cursor:pointer;font-size:1rem;padding:4px 6px;color:var(--muted);transition:color .2s;line-height:1}
+.eye-btn:hover{color:var(--text)}
+.val-hidden{filter:blur(5px);user-select:none;transition:filter .2s}
+.val-hidden:hover{filter:blur(5px)}
+
 /* ── MODALS ── */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;padding:16px}
 .overlay.open{opacity:1;pointer-events:all}
@@ -263,10 +287,24 @@ tr:hover td{background:var(--raised)}
   </div>
 
   <!-- KPIs — month only -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+    <span style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Resumo do Mês</span>
+    <button class="eye-btn" id="eyeToggle" onclick="toggleValVis()" title="Mostrar/ocultar valores">👁</button>
+  </div>
   <div class="kpi-bar" id="kpiBar"></div>
 
   <!-- Bank totals -->
   <div class="bank-bar" id="bankBar"></div>
+
+  <!-- Bank filter -->
+  <div class="bank-filter-bar" id="bankFilterBar">
+    <span style="font-size:.72rem;color:var(--muted)">Filtrar por banco:</span>
+    <div class="bank-pill all on" id="bfAll" onclick="setBankFilter('')">Todos</div>
+    <div class="bank-pill itau" id="bfItau" onclick="setBankFilter('Itau')">Itaú</div>
+    <div class="bank-pill inter" id="bfInter" onclick="setBankFilter('Inter')">Inter</div>
+    <div class="bank-pill nubank" id="bfNubank" onclick="setBankFilter('Nubank')">Nubank</div>
+    <span class="bank-filter-total" id="bankFilterTotal"></span>
+  </div>
 
   <!-- Charts -->
   <div class="grid-2">
@@ -479,6 +517,8 @@ const INITIAL=[
 let data=[], activeYear='2026', activeMonth='MAR-2026';
 let yearFilterOn=false, filteredYears=new Set();
 let barChart, lineChart;
+let bankFilter=''; // '', 'Itau', 'Inter', 'Nubank'
+let valVisible=true;
 
 function loadData(){
   try{const h=location.hash.slice(1);if(h.startsWith('data=')){const d=JSON.parse(atob(h.slice(5)));if(Array.isArray(d)&&d.length)return d;}}catch(e){}
@@ -501,12 +541,41 @@ const getM=id=>data.find(d=>d.id===id);
 function init(){
   data=loadData();
   const ys=years();
-  activeYear=ys.includes('2026')?'2026':ys[ys.length-1];
+  const curYear=String(new Date().getFullYear());
+  activeYear=ys.includes(curYear)?curYear:(ys.includes('2026')?'2026':ys[ys.length-1]);
   activeMonth=data.filter(d=>d.year===activeYear).pop()?.id||data[data.length-1]?.id;
   render();
 }
 
-// ══ YEAR FILTER ══════════════════════════════════════════════════════════════
+// ══ BANK FILTER ═════════════════════════════════════════════════════════════
+function setBankFilter(bank){
+  bankFilter=bank;
+  ['bfAll','bfItau','bfInter','bfNubank'].forEach(id=>document.getElementById(id)?.classList.remove('on'));
+  const map={'':'bfAll','Itau':'bfItau','Inter':'bfInter','Nubank':'bfNubank'};
+  document.getElementById(map[bank])?.classList.add('on');
+  renderQuinzena();renderKPIs();renderBanks();
+}
+
+// ══ EYE TOGGLE ══════════════════════════════════════════════════════════════
+function toggleValVis(){
+  valVisible=!valVisible;
+  document.getElementById('eyeToggle').textContent=valVisible?'👁':'🙈';
+  document.querySelectorAll('.val-blur').forEach(el=>{
+    el.classList.toggle('val-hidden',!valVisible);
+  });
+}
+function vWrap(val){
+  return`<span class="val-blur${!valVisible?' val-hidden':''}">${val}</span>`;
+}
+
+// ══ PAID CHECK ══════════════════════════════════════════════════════════════
+function togglePaid(monthId,key,i){
+  const m=getM(monthId);
+  if(!m||!m[key][i])return;
+  m[key][i].paid=!m[key][i].paid;
+  saveData();renderQuinzena();renderKPIs();
+}
+
 function toggleYearFilter(on){
   yearFilterOn=on;
   document.getElementById('yearPills').style.display=on?'flex':'none';
@@ -545,13 +614,23 @@ function renderKPIs(){
   const m=getM(activeMonth);
   if(!m){document.getElementById('kpiBar').innerHTML='<div class="empty">Selecione um mês.</div>';return;}
   const r=tRec(m),e=tExp(m),s=saldo(m);
+  // apply bank filter
+  const arr=[...m.d15,...m.d30];
+  const filtered=bankFilter?arr.filter(x=>x.dest===bankFilter):arr;
+  const filtTotal=filtered.reduce((a,b)=>a+b.v,0);
+  const filtPaid=filtered.filter(x=>x.paid).reduce((a,b)=>a+b.v,0);
+  const bankLabel=bankFilter||'Todos';
   document.getElementById('kpiBar').innerHTML=`
-    <div class="kpi"><div class="k-label">Total Receitas</div><div class="k-val c-green">${fmtR(r)}</div><div class="k-sub">${m.label}</div></div>
-    <div class="kpi"><div class="k-label">Total Despesas</div><div class="k-val c-red">${fmtR(e)}</div><div class="k-sub">${pct(e/r)} comprometido</div></div>
-    <div class="kpi"><div class="k-label">Saldo do Mês</div><div class="k-val ${s>=0?'c-green':'c-red'}">${s<0?'− ':''}${fmtR(s)}</div><div class="k-sub">${s>=0?'Positivo ✓':'Negativo ⚠️'}</div></div>
-    <div class="kpi"><div class="k-label">Dia 15 — Gastos</div><div class="k-val c-blue">${fmtR(sumK(m.d15))}</div><div class="k-sub">Saldo: ${fmtR(m.vale-sumK(m.d15))}</div></div>
-    <div class="kpi"><div class="k-label">Dia 30 — Gastos</div><div class="k-val c-yellow">${fmtR(sumK(m.d30))}</div><div class="k-sub">Saldo: ${fmtR(m.pg-sumK(m.d30))}</div></div>
+    <div class="kpi"><div class="k-label">Total Receitas</div><div class="k-val c-green">${vWrap(fmtR(r))}</div><div class="k-sub">${m.label}</div></div>
+    <div class="kpi"><div class="k-label">Total Despesas</div><div class="k-val c-red">${vWrap(fmtR(e))}</div><div class="k-sub">${pct(e/r)} comprometido</div></div>
+    <div class="kpi"><div class="k-label">Saldo do Mês</div><div class="k-val ${s>=0?'c-green':'c-red'}">${vWrap((s<0?'− ':'')+fmtR(s))}</div><div class="k-sub">${s>=0?'Positivo ✓':'Negativo ⚠️'}</div></div>
+    <div class="kpi"><div class="k-label">Dia 15 — Gastos</div><div class="k-val c-blue">${vWrap(fmtR(sumK(m.d15)))}</div><div class="k-sub">Saldo: ${vWrap(fmtR(m.vale-sumK(m.d15)))}</div></div>
+    <div class="kpi"><div class="k-label">Dia 30 — Gastos</div><div class="k-val c-yellow">${vWrap(fmtR(sumK(m.d30)))}</div><div class="k-sub">Saldo: ${vWrap(fmtR(m.pg-sumK(m.d30)))}</div></div>
+    ${bankFilter?`<div class="kpi"><div class="k-label">${bankLabel} — Filtrado</div><div class="k-val" style="color:var(--purple)">${vWrap(fmtR(filtTotal))}</div><div class="k-sub">Pago: ${vWrap(fmtR(filtPaid))}</div></div>`:''}
   `;
+  // update filter total label
+  const ftEl=document.getElementById('bankFilterTotal');
+  if(ftEl) ftEl.textContent=bankFilter?`Total ${bankLabel}: ${fmtR(filtTotal)}`:'';
 }
 
 // Bank totals — active month only
@@ -563,9 +642,9 @@ function renderBanks(){
   const inter=all.filter(e=>e.dest==='Inter').reduce((s,e)=>s+e.v,0);
   const nubank=all.filter(e=>e.dest==='Nubank').reduce((s,e)=>s+e.v,0);
   document.getElementById('bankBar').innerHTML=`
-    <div class="bank-card bank-itau"><div class="bank-label">Itaú</div><div class="bank-val">${fmtR(itau)}</div></div>
-    <div class="bank-card bank-inter"><div class="bank-label">Inter</div><div class="bank-val">${fmtR(inter)}</div></div>
-    <div class="bank-card bank-nubank"><div class="bank-label">Nubank</div><div class="bank-val">${fmtR(nubank)}</div></div>
+    <div class="bank-card bank-itau"><div class="bank-label">Itaú</div><div class="bank-val">${vWrap(fmtR(itau))}</div></div>
+    <div class="bank-card bank-inter"><div class="bank-label">Inter</div><div class="bank-val">${vWrap(fmtR(inter))}</div></div>
+    <div class="bank-card bank-nubank"><div class="bank-label">Nubank</div><div class="bank-val">${vWrap(fmtR(nubank))}</div></div>
   `;
 }
 
@@ -609,19 +688,24 @@ function destSelect(id,selected,cls='dest-sel'){
 
 function quinzCard(m,key,cls,title,incLabel,income){
   const spent=sumK(m[key]);const sld=income-spent;
+  // apply bank filter: show all rows but dim non-matching when filter active
   const rows=m[key].map((e,i)=>expRow(m.id,key,e,i)).join('')||'<div class="empty">Sem gastos.</div>';
+  // filtered total for display
+  const filtArr=bankFilter?m[key].filter(e=>e.dest===bankFilter):m[key];
+  const filtSpent=filtArr.reduce((a,b)=>a+b.v,0);
+  const filtLabel=bankFilter?`<span style="font-size:.62rem;color:var(--muted);margin-left:6px">(${bankFilter}: ${fmtR(filtSpent)})</span>`:'';
   return`<div class="q-card">
     <div class="q-header ${cls}">
       <div>
         <span class="q-badge ${cls}">${title}</span>
         <div class="q-income-edit">
           <span style="font-size:.68rem;color:var(--muted)">${incLabel}:</span>
-          <span class="income-val" onclick="editIncome('${m.id}','${key}')">${fmtR(income)}</span>
+          <span class="income-val" onclick="editIncome('${m.id}','${key}')">${vWrap(fmtR(income))}</span>
         </div>
       </div>
       <div style="text-align:right">
-        <div style="font-size:.68rem;color:var(--muted)">Gasto</div>
-        <div style="font-family:var(--mono);font-size:.85rem;color:${cls==='dia15'?'var(--blue)':'var(--accent2)'}">${fmtR(spent)}</div>
+        <div style="font-size:.68rem;color:var(--muted)">Gasto${filtLabel}</div>
+        <div style="font-family:var(--mono);font-size:.85rem;color:${cls==='dia15'?'var(--blue)':'var(--accent2)'}">${vWrap(fmtR(spent))}</div>
       </div>
     </div>
     <div class="expense-list" id="list_${key}_${m.id}">${rows}</div>
@@ -636,7 +720,7 @@ function quinzCard(m,key,cls,title,incLabel,income){
       <button class="btn btn-purple" style="font-size:.7rem;padding:4px 10px" onclick="openCopy('${m.id}','${key}')">📋 Copiar anterior</button>
       <div>
         <span style="font-size:.68rem;color:var(--muted)">Saldo: </span>
-        <span class="q-saldo" style="color:${sld>=0?'var(--accent)':'var(--accent2)'}">${sld<0?'− ':''}${fmtR(sld)}</span>
+        <span class="q-saldo" style="color:${sld>=0?'var(--accent)':'var(--accent2)'}">${sld<0?'− ':''}${vWrap(fmtR(sld))}</span>
       </div>
     </div>
   </div>`;
@@ -648,13 +732,29 @@ function destBadge(dest){
 }
 
 function expRow(monthId,key,e,i){
-  const pBadge=e.p>0?`<span class="parcela-badge">${e.p}x</span>`:'';
-  return`<div class="exp-row" id="erow_${key}_${monthId}_${i}">
+  // Installments: e.p = total parcelas, e.pPaid = parcelas já pagas (aumenta a cada mês)
+  // Badge mostra "X/Y" onde X=parcela atual e Y=total
+  let pBadge='';
+  if(e.p>0){
+    const pPaid=e.pPaid||0;
+    const current=pPaid+1;
+    const remaining=e.p-pPaid;
+    if(remaining>0){
+      pBadge=`<span class="parcela-badge" title="${current}ª de ${e.p} parcelas — faltam ${remaining}">${current}/${e.p}</span>`;
+    } else {
+      pBadge=`<span class="parcela-badge" style="opacity:.4" title="Parcelamento quitado">✓${e.p}x</span>`;
+    }
+  }
+  const isPaid=!!e.paid;
+  const isFiltered=bankFilter&&e.dest!==bankFilter;
+  const rowStyle=isFiltered?'opacity:.25;':'';
+  return`<div class="exp-row${isPaid?' paid-row':''}" id="erow_${key}_${monthId}_${i}" style="${rowStyle}">
+    <div class="exp-check${isPaid?' paid':''}" onclick="togglePaid('${monthId}','${key}',${i})" title="${isPaid?'Marcar como não pago':'Marcar como pago'}"></div>
     <div class="exp-name-wrap">
       <span class="exp-name" ondblclick="startEdit('${monthId}','${key}',${i})">${e.n}</span>
       ${pBadge}${destBadge(e.dest||'')}
     </div>
-    <span class="exp-amount" ondblclick="startEdit('${monthId}','${key}',${i})">${fmtR(e.v)}</span>
+    <span class="exp-amount val-blur${!valVisible?' val-hidden':''}" ondblclick="startEdit('${monthId}','${key}',${i})">${fmtR(e.v)}</span>
     <div class="row-actions">
       <button class="icon-btn edit-icon" onclick="startEdit('${monthId}','${key}',${i})" title="Editar">✏️</button>
       <button class="icon-btn del-btn" onclick="delExp('${monthId}','${key}',${i})" title="Remover">✕</button>
@@ -809,11 +909,19 @@ function openCopy(monthId,key){
   const idx=data.findIndex(d=>d.id===monthId);
   const prev=data[idx-1];if(!prev){toast('⚠️ Não há mês anterior!');return;}
   document.getElementById('copySourceLabel').textContent=`De: ${prev.label} → ${getM(monthId).label} (${key==='d15'?'Dia 15':'Dia 30'})`;
+  function parInfo(e){
+    if(e.p<=0)return'';
+    const pPaid=e.pPaid||0;
+    const next=pPaid+1;
+    const rem=e.p-pPaid;
+    if(rem<=1)return' <span style="color:var(--accent3);font-size:.65rem">(última parcela)</span>';
+    return` <span style="color:var(--purple);font-size:.65rem">(${next}/${e.p} — faltam ${rem-1} após)</span>`;
+  }
   document.getElementById('copyList').innerHTML=`
     <div class="copy-section">Dia 15 — ${prev.label}</div>
-    ${prev.d15.map((e,i)=>`<div class="copy-item"><input type="checkbox" id="cp_d15_${i}" checked><label for="cp_d15_${i}">${e.n}${e.p>0?' ('+e.p+'x)':''}${e.dest?' ['+e.dest+']':''}</label><span class="copy-amt">${fmtR(e.v)}</span></div>`).join('')}
+    ${prev.d15.map((e,i)=>`<div class="copy-item"><input type="checkbox" id="cp_d15_${i}" checked><label for="cp_d15_${i}">${e.n}${parInfo(e)}${e.dest?' ['+e.dest+']':''}</label><span class="copy-amt">${fmtR(e.v)}</span></div>`).join('')}
     <div class="copy-section">Dia 30 — ${prev.label}</div>
-    ${prev.d30.map((e,i)=>`<div class="copy-item"><input type="checkbox" id="cp_d30_${i}" checked><label for="cp_d30_${i}">${e.n}${e.p>0?' ('+e.p+'x)':''}${e.dest?' ['+e.dest+']':''}</label><span class="copy-amt">${fmtR(e.v)}</span></div>`).join('')}
+    ${prev.d30.map((e,i)=>`<div class="copy-item"><input type="checkbox" id="cp_d30_${i}" checked><label for="cp_d30_${i}">${e.n}${parInfo(e)}${e.dest?' ['+e.dest+']':''}</label><span class="copy-amt">${fmtR(e.v)}</span></div>`).join('')}
   `;
   document.getElementById('modalCopy').classList.add('open');
 }
@@ -822,8 +930,30 @@ function confirmCopy(){
   const idx=data.findIndex(d=>d.id===copyTarget.monthId);
   const prev=data[idx-1];if(!prev)return;
   const m=getM(copyTarget.monthId);const snap=JSON.parse(JSON.stringify(m));let count=0;
-  prev.d15.forEach((e,i)=>{if(document.getElementById(`cp_d15_${i}`)?.checked){m[copyTarget.key].push({...e});count++;}});
-  prev.d30.forEach((e,i)=>{if(document.getElementById(`cp_d30_${i}`)?.checked){m[copyTarget.key].push({...e});count++;}});
+  prev.d15.forEach((e,i)=>{
+    if(document.getElementById(`cp_d15_${i}`)?.checked){
+      const copy={...e};
+      // advance installment: if has parcelas and not finished
+      if(copy.p>0){
+        copy.pPaid=(copy.pPaid||0)+1;
+        // if fully paid, skip copying
+        if(copy.pPaid>=copy.p){copy.p=0;copy.pPaid=0;}
+      }
+      copy.paid=false; // reset paid status for new month
+      m[copyTarget.key].push(copy);count++;
+    }
+  });
+  prev.d30.forEach((e,i)=>{
+    if(document.getElementById(`cp_d30_${i}`)?.checked){
+      const copy={...e};
+      if(copy.p>0){
+        copy.pPaid=(copy.pPaid||0)+1;
+        if(copy.pPaid>=copy.p){copy.p=0;copy.pPaid=0;}
+      }
+      copy.paid=false;
+      m[copyTarget.key].push(copy);count++;
+    }
+  });
   saveData();closeModal('modalCopy');renderQuinzena();renderKPIs();renderBanks();renderCharts();renderTable();renderTop();
   toast(`✅ ${count} item(s) copiado(s)`,()=>{Object.assign(m,snap);saveData();renderQuinzena();renderKPIs();renderBanks();renderCharts();renderTable();renderTop();});
 }
