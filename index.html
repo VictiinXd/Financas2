@@ -379,7 +379,10 @@ tr:hover td{background:var(--raised)}
     <h3>🔗 Compartilhar / Celular</h3>
     <p style="font-size:.78rem;color:var(--muted);line-height:1.6">Seus dados ficam no link. Abra no celular ou salve nos favoritos.</p>
     <div class="share-box">
-      <div style="font-size:.72rem;color:var(--muted)">Link com seus dados:</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:.72rem;color:var(--muted)">Link com seus dados:</span>
+        <span id="shareSizeInfo" style="font-size:.68rem;color:var(--accent);font-family:var(--mono)"></span>
+      </div>
       <div class="share-url" id="shareUrl">Gerando…</div>
       <div class="share-btns">
         <button class="btn btn-accent" onclick="copyShareLink()">📋 Copiar Link</button>
@@ -456,62 +459,7 @@ if(sessionStorage.getItem('fin_auth')==='1'){
 }
 
 // ══ DATA ════════════════════════════════════════════════════════════════════
-const INITIAL=[
-  {id:"OUT-2024",label:"Out/2024",year:"2024",vale:1139.15,pg:1401.64,extra:0,
-   d15:[{n:"SEGURO",v:95,p:0,dest:""},{n:"CELULAR",v:61.5,p:0,dest:"Nubank"},{n:"BRAS",v:200,p:0,dest:""},{n:"NUBANK",v:107.02,p:0,dest:"Nubank"},{n:"COMBUSTIVEL",v:50,p:0,dest:"Itau"}],
-   d30:[{n:"BARBERO",v:97.9,p:0,dest:""},{n:"CLARO",v:50,p:0,dest:"Inter"},{n:"DESKTOP",v:75,p:0,dest:"Nubank"},{n:"ACADEMIA",v:55.9,p:0,dest:"Itau"},{n:"COMBUSTIVEL",v:420,p:0,dest:"Itau"},{n:"GOOGLE ONE",v:7.99,p:0,dest:"Nubank"},{n:"SPOTIFY",v:11.9,p:0,dest:"Nubank"},{n:"ICLOUD",v:5,p:0,dest:"Nubank"},{n:"GAMEPASS",v:36,p:0,dest:"Itau"}]},
-  {id:"NOV-2024",label:"Nov/2024",year:"2024",vale:1139.15,pg:1401.64,extra:593,
-   d15:[{n:"SEGURO",v:95,p:0,dest:""},{n:"CELULAR",v:186.5,p:0,dest:"Nubank"},{n:"NUBANK",v:144.99,p:0,dest:"Nubank"},{n:"GOOGLE ONE",v:7.99,p:0,dest:"Nubank"},{n:"SPOTIFY",v:11.9,p:0,dest:"Nubank"},{n:"CARRO",v:300,p:0,dest:"Itau"},{n:"ICLOUD",v:5,p:0,dest:"Nubank"},{n:"GAMEPASS",v:35,p:0,dest:"Itau"}],
-   d30:[{n:"BARBERO",v:90,p:0,dest:""},{n:"CLARO",v:50,p:0,dest:"Inter"},{n:"ACADEMIA",v:55.9,p:0,dest:"Itau"},{n:"CELULAR",v:289.5,p:0,dest:"Nubank"},{n:"COMBUSTIVEL",v:440,p:0,dest:"Itau"},{n:"CARRO",v:350,p:0,dest:"Itau"},{n:"RELÓGIO",v:100,p:3,dest:"Nubank"}]},
-  {id:"DEZ-2024",label:"Dez/2024",year:"2024",vale:1139.15,pg:1401.64,extra:300,
-   d15:[{n:"SEGURO",v:95,p:0,dest:""},{n:"CELULAR",v:186.5,p:0,dest:"Nubank"},{n:"GOOGLE ONE",v:7.99,p:0,dest:"Nubank"},{n:"SPOTIFY",v:11.9,p:0,dest:"Nubank"},{n:"CARRO",v:450,p:0,dest:"Itau"},{n:"ICLOUD",v:5,p:0,dest:"Nubank"},{n:"GAMEPASS",v:35,p:0,dest:"Itau"},{n:"TECLADO",v:48.58,p:2,dest:"Nubank"},{n:"RELÓGIO",v:100,p:0,dest:""},{n:"SSD",v:50.74,p:0,dest:"Nubank"},{n:"NETFLIX",v:12.9,p:0,dest:"Nubank"}],
-   d30:[{n:"BARBERO",v:90,p:0,dest:""},{n:"CLARO",v:50,p:0,dest:"Inter"},{n:"ACADEMIA",v:55.9,p:0,dest:"Itau"},{n:"CELULAR",v:186.5,p:0,dest:"Nubank"},{n:"COMBUSTIVEL",v:440,p:0,dest:"Itau"},{n:"CARRO",v:250,p:0,dest:"Itau"}]},
-  {id:"JAN-2025",label:"Jan/2025",year:"2025",vale:1139.15,pg:1401.64,extra:0,
-   d15:[{n:"SEGURO",v:95,p:0,dest:""},{n:"CELULAR",v:186.5,p:0,dest:"Nubank"},{n:"GOOGLE ONE",v:7.99,p:0,dest:"Nubank"},{n:"SPOTIFY",v:11.9,p:0,dest:"Nubank"},{n:"CARRO",v:350,p:0,dest:"Itau"},{n:"ICLOUD",v:5,p:0,dest:"Nubank"},{n:"GAMEPASS",v:35,p:0,dest:"Itau"},{n:"NETFLIX",v:12.9,p:0,dest:"Nubank"},{n:"TENIS",v:87.57,p:3,dest:"Nubank"}],
-   d30:[{n:"BARBERO",v:90,p:0,dest:""},{n:"CLARO",v:50,p:0,dest:"Inter"},{n:"ACADEMIA",v:55.9,p:0,dest:"Itau"},{n:"CELULAR",v:186.5,p:0,dest:"Nubank"},{n:"COMBUSTIVEL",v:440,p:0,dest:"Itau"},{n:"CARRO",v:250,p:0,dest:"Itau"}]},
-  {id:"FEV-2025",label:"Fev/2025",year:"2025",vale:1139.15,pg:1401.06,extra:0,
-   d15:[{n:"SEGURO",v:95,p:0,dest:""},{n:"CELULAR",v:186.5,p:0,dest:"Nubank"},{n:"GOOGLE ONE",v:7.99,p:0,dest:"Nubank"},{n:"SPOTIFY",v:11.9,p:0,dest:"Nubank"},{n:"CARRO",v:350,p:0,dest:"Itau"},{n:"ICLOUD",v:5,p:0,dest:"Nubank"},{n:"GAMEPASS",v:35,p:0,dest:"Itau"},{n:"NETFLIX",v:12.9,p:0,dest:"Nubank"},{n:"MONITOR",v:96.75,p:6,dest:"Nubank"}],
-   d30:[{n:"BARBERO",v:90,p:0,dest:""},{n:"CLARO",v:50,p:0,dest:"Inter"},{n:"CELULAR",v:186.5,p:0,dest:"Nubank"},{n:"COMBUSTIVEL",v:440,p:0,dest:"Itau"},{n:"CARRO",v:350,p:0,dest:"Itau"},{n:"DESKTOP",v:75,p:0,dest:"Nubank"},{n:"MARCOS",v:200,p:0,dest:"Inter"}]},
-  {id:"MAR-2025",label:"Mar/2025",year:"2025",vale:1139.15,pg:1342.64,extra:0,
-   d15:[{n:"SEGURO",v:95,p:0,dest:""},{n:"CELULAR",v:186.5,p:0,dest:"Nubank"},{n:"GOOGLE ONE",v:7.99,p:0,dest:"Nubank"},{n:"SPOTIFY",v:11.9,p:0,dest:"Nubank"},{n:"CARRO",v:390,p:0,dest:"Itau"},{n:"ICLOUD",v:5,p:0,dest:"Nubank"},{n:"GAMEPASS",v:35,p:0,dest:"Itau"},{n:"NETFLIX",v:12.9,p:0,dest:"Nubank"},{n:"MONITOR",v:96.75,p:0,dest:"Nubank"},{n:"MAE",v:60,p:0,dest:"Inter"}],
-   d30:[{n:"BARBERO",v:100,p:0,dest:""},{n:"CLARO",v:50,p:0,dest:"Inter"},{n:"CELULAR",v:186.5,p:0,dest:"Nubank"},{n:"COMBUSTIVEL",v:440,p:0,dest:"Itau"},{n:"CARRO",v:350,p:0,dest:"Itau"},{n:"DESKTOP",v:75,p:0,dest:"Nubank"}]},
-  {id:"ABR-2025",label:"Abr/2025",year:"2025",vale:1139.15,pg:1342.64,extra:0,
-   d15:[{n:"SEGURO",v:95,p:0,dest:""},{n:"CELULAR",v:186.5,p:0,dest:"Nubank"},{n:"GOOGLE ONE",v:7.99,p:0,dest:"Nubank"},{n:"SPOTIFY",v:11.9,p:0,dest:"Nubank"},{n:"CARRO",v:390,p:0,dest:"Itau"},{n:"ICLOUD",v:5,p:0,dest:"Nubank"},{n:"GAMEPASS",v:35,p:0,dest:"Itau"},{n:"NETFLIX",v:12.9,p:0,dest:"Nubank"},{n:"MONITOR",v:96.75,p:0,dest:"Nubank"},{n:"MAE",v:60,p:0,dest:"Inter"}],
-   d30:[{n:"BARBERO",v:50,p:0,dest:""},{n:"CLARO",v:50,p:0,dest:"Inter"},{n:"CELULAR",v:186.5,p:0,dest:"Nubank"},{n:"COMBUSTIVEL",v:460,p:0,dest:"Itau"},{n:"CARRO",v:160,p:0,dest:"Itau"},{n:"DESKTOP",v:75,p:0,dest:"Nubank"},{n:"ALUGUEL CARRO",v:190,p:0,dest:"Inter"}]},
-  {id:"MAI-2025",label:"Mai/2025",year:"2025",vale:1139.15,pg:1342.64,extra:0,
-   d15:[{n:"SEGURO",v:95,p:0,dest:""},{n:"CELULAR",v:186.5,p:0,dest:"Nubank"},{n:"GOOGLE ONE",v:7.99,p:0,dest:"Nubank"},{n:"SPOTIFY",v:11.9,p:0,dest:"Nubank"},{n:"CARRO",v:350,p:0,dest:"Itau"},{n:"ICLOUD",v:5,p:0,dest:"Nubank"},{n:"GAMEPASS",v:35,p:0,dest:"Itau"},{n:"NETFLIX",v:12.9,p:0,dest:"Nubank"},{n:"MONITOR",v:96.75,p:0,dest:"Nubank"},{n:"MAE",v:60,p:0,dest:"Inter"}],
-   d30:[{n:"BARBERO",v:100,p:0,dest:""},{n:"CLARO",v:50,p:0,dest:"Inter"},{n:"CELULAR",v:186.5,p:0,dest:"Nubank"},{n:"COMBUSTIVEL",v:440,p:0,dest:"Itau"},{n:"CARRO",v:350,p:0,dest:"Itau"},{n:"DESKTOP",v:75,p:0,dest:"Nubank"},{n:"MARCOS",v:200,p:0,dest:"Inter"}]},
-  {id:"JUN-2025",label:"Jun/2025",year:"2025",vale:1139.15,pg:1367.29,extra:0,
-   d15:[{n:"SEGURO",v:95,p:0,dest:""},{n:"CELULAR",v:186.5,p:0,dest:"Nubank"},{n:"GOOGLE ONE",v:7.99,p:0,dest:"Nubank"},{n:"SPOTIFY",v:11.9,p:0,dest:"Nubank"},{n:"CARRO",v:390,p:0,dest:"Itau"},{n:"ICLOUD",v:5,p:0,dest:"Nubank"},{n:"GAMEPASS",v:35,p:0,dest:"Itau"},{n:"NETFLIX",v:12.9,p:0,dest:"Nubank"},{n:"MONITOR",v:96.75,p:0,dest:"Nubank"},{n:"MAE",v:60,p:0,dest:"Inter"},{n:"OCULOS",v:96.66,p:3,dest:"Nubank"}],
-   d30:[{n:"BARBERO",v:100,p:0,dest:""},{n:"CLARO",v:100,p:0,dest:"Inter"},{n:"CELULAR",v:186.5,p:0,dest:"Nubank"},{n:"COMBUSTIVEL",v:440,p:0,dest:"Itau"},{n:"CARRO",v:250,p:0,dest:"Itau"}]},
-  {id:"JUL-2025",label:"Jul/2025",year:"2025",vale:1207.5,pg:1311.64,extra:0,
-   d15:[{n:"SEGURO",v:95,p:0,dest:""},{n:"CELULAR",v:186.5,p:0,dest:"Nubank"},{n:"GOOGLE ONE",v:7.99,p:0,dest:"Nubank"},{n:"SPOTIFY",v:11.9,p:0,dest:"Nubank"},{n:"CARRO",v:400,p:0,dest:"Itau"},{n:"ICLOUD",v:5,p:0,dest:"Nubank"},{n:"GAMEPASS",v:35,p:0,dest:"Itau"},{n:"NETFLIX",v:25.8,p:0,dest:"Nubank"},{n:"MONITOR",v:96.75,p:0,dest:"Nubank"},{n:"MAE",v:60,p:0,dest:"Inter"},{n:"TÊNIS",v:137.49,p:3,dest:"Nubank"}],
-   d30:[{n:"BARBERO",v:100,p:0,dest:""},{n:"CLARO",v:50,p:0,dest:"Inter"},{n:"CELULAR",v:186.5,p:0,dest:"Nubank"},{n:"COMBUSTIVEL",v:440,p:0,dest:"Itau"},{n:"CARRO",v:300,p:0,dest:"Itau"},{n:"VIVO",v:100,p:0,dest:"Inter"}]},
-  {id:"AGO-2025",label:"Ago/2025",year:"2025",vale:1139.15,pg:1941,extra:0,
-   d15:[{n:"CELULAR",v:186.5,p:0,dest:"Nubank"},{n:"GOOGLE ONE",v:7.99,p:0,dest:"Nubank"},{n:"SPOTIFY",v:11.9,p:0,dest:"Nubank"},{n:"CARRO",v:300,p:0,dest:"Itau"},{n:"ICLOUD",v:5,p:0,dest:"Nubank"},{n:"GAMEPASS",v:35,p:0,dest:"Itau"},{n:"NETFLIX",v:25.8,p:0,dest:"Nubank"},{n:"MAE",v:60,p:0,dest:"Inter"},{n:"TÊNIS",v:137.49,p:0,dest:"Nubank"}],
-   d30:[{n:"BARBERO",v:100,p:0,dest:""},{n:"CLARO",v:50,p:0,dest:"Inter"},{n:"CELULAR",v:186.5,p:0,dest:"Nubank"},{n:"COMBUSTIVEL",v:470,p:0,dest:"Itau"},{n:"CARRO",v:500,p:0,dest:"Itau"},{n:"VIVO",v:100,p:0,dest:"Inter"}]},
-  {id:"SET-2025",label:"Set/2025",year:"2025",vale:1207.5,pg:1450,extra:0,
-   d15:[{n:"CELULAR",v:186.5,p:0,dest:"Nubank"},{n:"GOOGLE ONE",v:7.99,p:0,dest:"Nubank"},{n:"SPOTIFY",v:11.9,p:0,dest:"Nubank"},{n:"CARRO",v:300,p:0,dest:"Itau"},{n:"ICLOUD",v:5,p:0,dest:"Nubank"},{n:"GAMEPASS",v:35,p:0,dest:"Itau"},{n:"NETFLIX",v:25.8,p:0,dest:"Nubank"},{n:"MAE",v:60,p:0,dest:"Inter"},{n:"TV BOX",v:30,p:0,dest:"Nubank"}],
-   d30:[{n:"BARBERO",v:100,p:0,dest:""},{n:"CLARO",v:50,p:0,dest:"Inter"},{n:"CELULAR",v:186.5,p:0,dest:"Nubank"},{n:"COMBUSTIVEL",v:450,p:0,dest:"Itau"},{n:"CARRO",v:400,p:0,dest:"Itau"},{n:"VIVO",v:100,p:0,dest:"Inter"},{n:"FONE",v:107.43,p:3,dest:"Nubank"}]},
-  {id:"OUT-2025",label:"Out/2025",year:"2025",vale:1207.5,pg:1425,extra:0,
-   d15:[{n:"SEGURO",v:92,p:0,dest:""},{n:"CELULAR",v:186.5,p:0,dest:"Nubank"},{n:"GOOGLE ONE",v:7.99,p:0,dest:"Nubank"},{n:"SPOTIFY",v:11.9,p:0,dest:"Nubank"},{n:"CARRO",v:300,p:0,dest:"Itau"},{n:"ICLOUD",v:5,p:0,dest:"Nubank"},{n:"GAMEPASS",v:35,p:0,dest:"Itau"},{n:"NETFLIX",v:25.8,p:0,dest:"Nubank"},{n:"MAE",v:60,p:0,dest:"Inter"},{n:"TV BOX",v:30,p:0,dest:"Nubank"}],
-   d30:[{n:"BARBERO",v:100,p:0,dest:""},{n:"CLARO",v:55.34,p:0,dest:"Inter"},{n:"COMBUSTIVEL",v:450,p:0,dest:"Itau"},{n:"CARRO",v:300,p:0,dest:"Itau"},{n:"VIVO",v:100,p:0,dest:"Inter"}]},
-  {id:"NOV-2025",label:"Nov/2025",year:"2025",vale:1207.5,pg:1425,extra:0,
-   d15:[{n:"SEGURO",v:95,p:0,dest:""},{n:"GOOGLE ONE",v:7.99,p:0,dest:"Nubank"},{n:"SPOTIFY",v:11.9,p:0,dest:"Nubank"},{n:"CARRO",v:300,p:0,dest:"Itau"},{n:"ICLOUD",v:5,p:0,dest:"Nubank"},{n:"NETFLIX",v:25.8,p:0,dest:"Nubank"},{n:"MAE",v:60,p:0,dest:"Inter"},{n:"TV BOX",v:30,p:0,dest:"Nubank"},{n:"FONE",v:107.43,p:0,dest:"Nubank"}],
-   d30:[{n:"BARBERO",v:100,p:0,dest:""},{n:"CLARO",v:55.34,p:0,dest:"Inter"},{n:"COMBUSTIVEL",v:450,p:0,dest:"Itau"},{n:"CARRO",v:300,p:0,dest:"Itau"},{n:"VIVO",v:100,p:0,dest:"Inter"}]},
-  {id:"DEZ-2025",label:"Dez/2025",year:"2025",vale:1207.5,pg:1425,extra:0,
-   d15:[{n:"SEGURO",v:95,p:0,dest:""},{n:"GOOGLE ONE",v:7.99,p:0,dest:"Nubank"},{n:"SPOTIFY",v:11.9,p:0,dest:"Nubank"},{n:"CARRO",v:400,p:0,dest:"Itau"},{n:"ICLOUD",v:5,p:0,dest:"Nubank"},{n:"NETFLIX",v:25.8,p:0,dest:"Nubank"},{n:"MAE",v:60,p:0,dest:"Inter"},{n:"TV BOX",v:30,p:0,dest:"Nubank"}],
-   d30:[{n:"BARBERO",v:100,p:0,dest:""},{n:"CLARO",v:55.34,p:0,dest:"Inter"},{n:"COMBUSTIVEL",v:450,p:0,dest:"Itau"},{n:"CARRO",v:400,p:0,dest:"Itau"},{n:"VIVO",v:100,p:0,dest:"Inter"},{n:"FONE",v:107.43,p:0,dest:"Nubank"}]},
-  {id:"JAN-2026",label:"Jan/2026",year:"2026",vale:1207.5,pg:1425,extra:0,
-   d15:[{n:"SEGURO",v:110,p:0,dest:""},{n:"GOOGLE ONE",v:9.99,p:0,dest:"Nubank"},{n:"SPOTIFY",v:12.9,p:0,dest:"Nubank"},{n:"CARRO",v:453,p:0,dest:"Itau"},{n:"ICLOUD",v:5,p:0,dest:"Nubank"},{n:"NETFLIX",v:25.8,p:0,dest:"Nubank"},{n:"TV BOX",v:30,p:0,dest:"Nubank"},{n:"KIMONO",v:45,p:3,dest:"Nubank"},{n:"IPVA",v:219.55,p:5,dest:"Itau"},{n:"AR CONDI",v:143.53,p:4,dest:"Nubank"}],
-   d30:[{n:"BARBERO",v:100,p:0,dest:""},{n:"CLARO",v:55.34,p:0,dest:"Inter"},{n:"COMBUSTIVEL",v:440,p:0,dest:"Itau"},{n:"CARRO",v:400,p:0,dest:"Itau"},{n:"VIVO",v:110,p:0,dest:"Inter"},{n:"IPVA",v:109.8,p:0,dest:"Itau"},{n:"SEGURO VIDA",v:39.9,p:0,dest:"Inter"}]},
-  {id:"FEV-2026",label:"Fev/2026",year:"2026",vale:1207.5,pg:1431,extra:0,
-   d15:[{n:"SEGURO",v:110,p:0,dest:""},{n:"GOOGLE ONE",v:9.99,p:0,dest:"Nubank"},{n:"SPOTIFY",v:12.9,p:0,dest:"Nubank"},{n:"CARRO",v:453,p:0,dest:"Itau"},{n:"ICLOUD",v:5,p:0,dest:"Nubank"},{n:"NETFLIX",v:25.8,p:0,dest:"Nubank"},{n:"TV BOX",v:30,p:0,dest:"Nubank"},{n:"KIMONO",v:45,p:0,dest:"Nubank"},{n:"IPVA",v:109.8,p:0,dest:"Itau"},{n:"AR CONDI",v:143.53,p:0,dest:"Nubank"}],
-   d30:[{n:"BARBERO",v:100,p:0,dest:""},{n:"CLARO",v:55.34,p:0,dest:"Inter"},{n:"COMBUSTIVEL",v:440,p:0,dest:"Itau"},{n:"CARRO",v:400,p:0,dest:"Itau"},{n:"VIVO",v:110,p:0,dest:"Inter"},{n:"IPVA",v:109.8,p:0,dest:"Itau"},{n:"SEGURO VIDA",v:39.9,p:0,dest:"Inter"}]},
-  {id:"MAR-2026",label:"Mar/2026",year:"2026",vale:1207.5,pg:1431,extra:0,
-   d15:[{n:"SEGURO",v:110,p:0,dest:""},{n:"GOOGLE ONE",v:9.99,p:0,dest:"Nubank"},{n:"SPOTIFY",v:12.9,p:0,dest:"Nubank"},{n:"CARRO",v:453,p:0,dest:"Itau"},{n:"ICLOUD",v:5,p:0,dest:"Nubank"},{n:"NETFLIX",v:25.8,p:0,dest:"Nubank"},{n:"TV BOX",v:30,p:0,dest:"Nubank"},{n:"KIMONO",v:45,p:0,dest:"Nubank"},{n:"IPVA",v:109.8,p:0,dest:"Itau"},{n:"AR CONDI",v:143.53,p:0,dest:"Nubank"},{n:"AGIOTA",v:100,p:0,dest:"Inter"}],
-   d30:[{n:"BARBERO",v:100,p:0,dest:""},{n:"CLARO",v:55.34,p:0,dest:"Inter"},{n:"COMBUSTIVEL",v:440,p:0,dest:"Itau"},{n:"CARRO",v:400,p:0,dest:"Itau"},{n:"SEGURO VIDA",v:39.9,p:0,dest:"Inter"},{n:"IPVA",v:109.8,p:0,dest:"Itau"},{n:"MULTIMIDIA",v:86.5,p:3,dest:"Nubank"}]},
-];
+const INITIAL=[{"id":"OUT-2024","label":"Out/2024","year":"2024","vale":1139.15,"pg":1401.64,"extra":0,"d15":[{"n":"SEGURO","v":95,"p":0,"dest":""},{"n":"CELULAR","v":61.5,"p":0,"dest":"Nubank"},{"n":"BRAS","v":200,"p":0,"dest":""},{"n":"NUBANK","v":107.02,"p":0,"dest":"Nubank"},{"n":"COMBUSTIVEL","v":50,"p":0,"dest":"Itau"}],"d30":[{"n":"BARBERO","v":97.9,"p":0,"dest":""},{"n":"CLARO","v":50,"p":0,"dest":"Inter"},{"n":"DESKTOP","v":75,"p":0,"dest":"Nubank"},{"n":"ACADEMIA","v":55.9,"p":0,"dest":"Itau"},{"n":"COMBUSTIVEL","v":420,"p":0,"dest":"Itau"},{"n":"GOOGLE ONE","v":7.99,"p":0,"dest":"Nubank"},{"n":"SPOTIFY","v":11.9,"p":0,"dest":"Nubank"},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank"},{"n":"GAMEPASS","v":36,"p":0,"dest":"Itau"}]},{"id":"NOV-2024","label":"Nov/2024","year":"2024","vale":1139.15,"pg":1401.64,"extra":593,"d15":[{"n":"SEGURO","v":95,"p":0,"dest":""},{"n":"CELULAR","v":186.5,"p":0,"dest":"Nubank"},{"n":"NUBANK","v":144.99,"p":0,"dest":"Nubank"},{"n":"GOOGLE ONE","v":7.99,"p":0,"dest":"Nubank"},{"n":"SPOTIFY","v":11.9,"p":0,"dest":"Nubank"},{"n":"CARRO","v":300,"p":0,"dest":"Itau"},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank"},{"n":"GAMEPASS","v":35,"p":0,"dest":"Itau"}],"d30":[{"n":"BARBERO","v":90,"p":0,"dest":""},{"n":"CLARO","v":50,"p":0,"dest":"Inter"},{"n":"ACADEMIA","v":55.9,"p":0,"dest":"Itau"},{"n":"CELULAR","v":289.5,"p":0,"dest":"Nubank"},{"n":"COMBUSTIVEL","v":440,"p":0,"dest":"Itau"},{"n":"CARRO","v":350,"p":0,"dest":"Itau"},{"n":"RELOGIO","v":100,"p":3,"dest":"Nubank"}]},{"id":"DEZ-2024","label":"Dez/2024","year":"2024","vale":1139.15,"pg":1401.64,"extra":300,"d15":[{"n":"SEGURO","v":95,"p":0,"dest":""},{"n":"CELULAR","v":186.5,"p":0,"dest":"Nubank"},{"n":"GOOGLE ONE","v":7.99,"p":0,"dest":"Nubank"},{"n":"SPOTIFY","v":11.9,"p":0,"dest":"Nubank"},{"n":"CARRO","v":450,"p":0,"dest":"Itau"},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank"},{"n":"GAMEPASS","v":35,"p":0,"dest":"Itau"},{"n":"TECLADO","v":48.58,"p":2,"dest":"Nubank"},{"n":"RELOGIO","v":100,"p":0,"dest":""},{"n":"SSD","v":50.74,"p":0,"dest":"Nubank"},{"n":"NETFLIX","v":12.9,"p":0,"dest":"Nubank"}],"d30":[{"n":"BARBERO","v":90,"p":0,"dest":""},{"n":"CLARO","v":50,"p":0,"dest":"Inter"},{"n":"ACADEMIA","v":55.9,"p":0,"dest":"Itau"},{"n":"CELULAR","v":186.5,"p":0,"dest":"Nubank"},{"n":"COMBUSTIVEL","v":440,"p":0,"dest":"Itau"},{"n":"CARRO","v":250,"p":0,"dest":"Itau"}]},{"id":"JAN-2025","label":"Jan/2025","year":"2025","vale":1139.15,"pg":1401.64,"extra":0,"d15":[{"n":"SEGURO","v":95,"p":0,"dest":""},{"n":"CELULAR","v":186.5,"p":0,"dest":"Nubank"},{"n":"GOOGLE ONE","v":7.99,"p":0,"dest":"Nubank"},{"n":"SPOTIFY","v":11.9,"p":0,"dest":"Nubank"},{"n":"CARRO","v":350,"p":0,"dest":"Itau"},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank"},{"n":"GAMEPASS","v":35,"p":0,"dest":"Itau"},{"n":"NETFLIX","v":12.9,"p":0,"dest":"Nubank"},{"n":"TENIS","v":87.57,"p":3,"dest":"Nubank"}],"d30":[{"n":"BARBERO","v":90,"p":0,"dest":""},{"n":"CLARO","v":50,"p":0,"dest":"Inter"},{"n":"ACADEMIA","v":55.9,"p":0,"dest":"Itau"},{"n":"CELULAR","v":186.5,"p":0,"dest":"Nubank"},{"n":"COMBUSTIVEL","v":440,"p":0,"dest":"Itau"},{"n":"CARRO","v":250,"p":0,"dest":"Itau"}]},{"id":"FEV-2025","label":"Fev/2025","year":"2025","vale":1139.15,"pg":1401.06,"extra":0,"d15":[{"n":"SEGURO","v":95,"p":0,"dest":""},{"n":"CELULAR","v":186.5,"p":0,"dest":"Nubank"},{"n":"GOOGLE ONE","v":7.99,"p":0,"dest":"Nubank"},{"n":"SPOTIFY","v":11.9,"p":0,"dest":"Nubank"},{"n":"CARRO","v":350,"p":0,"dest":"Itau"},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank"},{"n":"GAMEPASS","v":35,"p":0,"dest":"Itau"},{"n":"NETFLIX","v":12.9,"p":0,"dest":"Nubank"},{"n":"MONITOR","v":96.75,"p":6,"dest":"Nubank"}],"d30":[{"n":"BARBERO","v":90,"p":0,"dest":""},{"n":"CLARO","v":50,"p":0,"dest":"Inter"},{"n":"CELULAR","v":186.5,"p":0,"dest":"Nubank"},{"n":"COMBUSTIVEL","v":440,"p":0,"dest":"Itau"},{"n":"CARRO","v":350,"p":0,"dest":"Itau"},{"n":"DESKTOP","v":75,"p":0,"dest":"Nubank"},{"n":"MARCOS","v":200,"p":0,"dest":"Inter"}]},{"id":"MAR-2025","label":"Mar/2025","year":"2025","vale":1139.15,"pg":1342.64,"extra":0,"d15":[{"n":"SEGURO","v":95,"p":0,"dest":""},{"n":"CELULAR","v":186.5,"p":0,"dest":"Nubank"},{"n":"GOOGLE ONE","v":7.99,"p":0,"dest":"Nubank"},{"n":"SPOTIFY","v":11.9,"p":0,"dest":"Nubank"},{"n":"CARRO","v":390,"p":0,"dest":"Itau"},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank"},{"n":"GAMEPASS","v":35,"p":0,"dest":"Itau"},{"n":"NETFLIX","v":12.9,"p":0,"dest":"Nubank"},{"n":"MONITOR","v":96.75,"p":0,"dest":"Nubank"},{"n":"MAE","v":60,"p":0,"dest":"Inter"}],"d30":[{"n":"BARBERO","v":100,"p":0,"dest":""},{"n":"CLARO","v":50,"p":0,"dest":"Inter"},{"n":"CELULAR","v":186.5,"p":0,"dest":"Nubank"},{"n":"COMBUSTIVEL","v":440,"p":0,"dest":"Itau"},{"n":"CARRO","v":350,"p":0,"dest":"Itau"},{"n":"DESKTOP","v":75,"p":0,"dest":"Nubank"}]},{"id":"ABR-2025","label":"Abr/2025","year":"2025","vale":1139.15,"pg":1342.64,"extra":0,"d15":[{"n":"SEGURO","v":95,"p":0,"dest":""},{"n":"CELULAR","v":186.5,"p":0,"dest":"Nubank"},{"n":"GOOGLE ONE","v":7.99,"p":0,"dest":"Nubank"},{"n":"SPOTIFY","v":11.9,"p":0,"dest":"Nubank"},{"n":"CARRO","v":390,"p":0,"dest":"Itau"},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank"},{"n":"GAMEPASS","v":35,"p":0,"dest":"Itau"},{"n":"NETFLIX","v":12.9,"p":0,"dest":"Nubank"},{"n":"MONITOR","v":96.75,"p":0,"dest":"Nubank"},{"n":"MAE","v":60,"p":0,"dest":"Inter"}],"d30":[{"n":"BARBERO","v":50,"p":0,"dest":""},{"n":"CLARO","v":50,"p":0,"dest":"Inter"},{"n":"CELULAR","v":186.5,"p":0,"dest":"Nubank"},{"n":"COMBUSTIVEL","v":460,"p":0,"dest":"Itau"},{"n":"CARRO","v":160,"p":0,"dest":"Itau"},{"n":"DESKTOP","v":75,"p":0,"dest":"Nubank"},{"n":"ALUGUEL CARRO","v":190,"p":0,"dest":"Inter"}]},{"id":"MAI-2025","label":"Mai/2025","year":"2025","vale":1139.15,"pg":1342.64,"extra":0,"d15":[{"n":"SEGURO","v":95,"p":0,"dest":""},{"n":"CELULAR","v":186.5,"p":0,"dest":"Nubank"},{"n":"GOOGLE ONE","v":7.99,"p":0,"dest":"Nubank"},{"n":"SPOTIFY","v":11.9,"p":0,"dest":"Nubank"},{"n":"CARRO","v":350,"p":0,"dest":"Itau"},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank"},{"n":"GAMEPASS","v":35,"p":0,"dest":"Itau"},{"n":"NETFLIX","v":12.9,"p":0,"dest":"Nubank"},{"n":"MONITOR","v":96.75,"p":0,"dest":"Nubank"},{"n":"MAE","v":60,"p":0,"dest":"Inter"}],"d30":[{"n":"BARBERO","v":100,"p":0,"dest":""},{"n":"CLARO","v":50,"p":0,"dest":"Inter"},{"n":"CELULAR","v":186.5,"p":0,"dest":"Nubank"},{"n":"COMBUSTIVEL","v":440,"p":0,"dest":"Itau"},{"n":"CARRO","v":350,"p":0,"dest":"Itau"},{"n":"DESKTOP","v":75,"p":0,"dest":"Nubank"},{"n":"MARCOS","v":200,"p":0,"dest":"Inter"}]},{"id":"JUN-2025","label":"Jun/2025","year":"2025","vale":1139.15,"pg":1367.29,"extra":0,"d15":[{"n":"SEGURO","v":95,"p":0,"dest":""},{"n":"CELULAR","v":186.5,"p":0,"dest":"Nubank"},{"n":"GOOGLE ONE","v":7.99,"p":0,"dest":"Nubank"},{"n":"SPOTIFY","v":11.9,"p":0,"dest":"Nubank"},{"n":"CARRO","v":390,"p":0,"dest":"Itau"},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank"},{"n":"GAMEPASS","v":35,"p":0,"dest":"Itau"},{"n":"NETFLIX","v":12.9,"p":0,"dest":"Nubank"},{"n":"MONITOR","v":96.75,"p":0,"dest":"Nubank"},{"n":"MAE","v":60,"p":0,"dest":"Inter"},{"n":"OCULOS","v":96.66,"p":3,"dest":"Nubank"}],"d30":[{"n":"BARBERO","v":100,"p":0,"dest":""},{"n":"CLARO","v":100,"p":0,"dest":"Inter"},{"n":"CELULAR","v":186.5,"p":0,"dest":"Nubank"},{"n":"COMBUSTIVEL","v":440,"p":0,"dest":"Itau"},{"n":"CARRO","v":250,"p":0,"dest":"Itau"}]},{"id":"JUL-2025","label":"Jul/2025","year":"2025","vale":1207.5,"pg":1311.64,"extra":0,"d15":[{"n":"SEGURO","v":95,"p":0,"dest":""},{"n":"CELULAR","v":186.5,"p":0,"dest":"Nubank"},{"n":"GOOGLE ONE","v":7.99,"p":0,"dest":"Nubank"},{"n":"SPOTIFY","v":11.9,"p":0,"dest":"Nubank"},{"n":"CARRO","v":400,"p":0,"dest":"Itau"},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank"},{"n":"GAMEPASS","v":35,"p":0,"dest":"Itau"},{"n":"NETFLIX","v":25.8,"p":0,"dest":"Nubank"},{"n":"MONITOR","v":96.75,"p":0,"dest":"Nubank"},{"n":"MAE","v":60,"p":0,"dest":"Inter"},{"n":"TENIS","v":137.49,"p":3,"dest":"Nubank"}],"d30":[{"n":"BARBERO","v":100,"p":0,"dest":""},{"n":"CLARO","v":50,"p":0,"dest":"Inter"},{"n":"CELULAR","v":186.5,"p":0,"dest":"Nubank"},{"n":"COMBUSTIVEL","v":440,"p":0,"dest":"Itau"},{"n":"CARRO","v":300,"p":0,"dest":"Itau"},{"n":"VIVO","v":100,"p":0,"dest":"Inter"}]},{"id":"AGO-2025","label":"Ago/2025","year":"2025","vale":1139.15,"pg":1941,"extra":0,"d15":[{"n":"CELULAR","v":186.5,"p":0,"dest":"Nubank"},{"n":"GOOGLE ONE","v":7.99,"p":0,"dest":"Nubank"},{"n":"SPOTIFY","v":11.9,"p":0,"dest":"Nubank"},{"n":"CARRO","v":300,"p":0,"dest":"Itau"},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank"},{"n":"GAMEPASS","v":35,"p":0,"dest":"Itau"},{"n":"NETFLIX","v":25.8,"p":0,"dest":"Nubank"},{"n":"MAE","v":60,"p":0,"dest":"Inter"},{"n":"TENIS","v":137.49,"p":0,"dest":"Nubank"}],"d30":[{"n":"BARBERO","v":100,"p":0,"dest":""},{"n":"CLARO","v":50,"p":0,"dest":"Inter"},{"n":"CELULAR","v":186.5,"p":0,"dest":"Nubank"},{"n":"COMBUSTIVEL","v":470,"p":0,"dest":"Itau"},{"n":"CARRO","v":500,"p":0,"dest":"Itau"},{"n":"VIVO","v":100,"p":0,"dest":"Inter"}]},{"id":"SET-2025","label":"Set/2025","year":"2025","vale":1207.5,"pg":1450,"extra":0,"d15":[{"n":"CELULAR","v":186.5,"p":0,"dest":"Nubank"},{"n":"GOOGLE ONE","v":7.99,"p":0,"dest":"Nubank"},{"n":"SPOTIFY","v":11.9,"p":0,"dest":"Nubank"},{"n":"CARRO","v":300,"p":0,"dest":"Itau"},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank"},{"n":"GAMEPASS","v":35,"p":0,"dest":"Itau"},{"n":"NETFLIX","v":25.8,"p":0,"dest":"Nubank"},{"n":"MAE","v":60,"p":0,"dest":"Inter"},{"n":"TV BOX","v":30,"p":0,"dest":"Nubank"}],"d30":[{"n":"BARBERO","v":100,"p":0,"dest":""},{"n":"CLARO","v":50,"p":0,"dest":"Inter"},{"n":"CELULAR","v":186.5,"p":0,"dest":"Nubank"},{"n":"COMBUSTIVEL","v":450,"p":0,"dest":"Itau"},{"n":"CARRO","v":400,"p":0,"dest":"Itau"},{"n":"VIVO","v":100,"p":0,"dest":"Inter"},{"n":"FONE","v":107.43,"p":3,"dest":"Nubank"}]},{"id":"OUT-2025","label":"Out/2025","year":"2025","vale":1207.5,"pg":1425,"extra":0,"d15":[{"n":"SEGURO","v":92,"p":0,"dest":""},{"n":"CELULAR","v":186.5,"p":0,"dest":"Nubank"},{"n":"GOOGLE ONE","v":7.99,"p":0,"dest":"Nubank"},{"n":"SPOTIFY","v":11.9,"p":0,"dest":"Nubank"},{"n":"CARRO","v":300,"p":0,"dest":"Itau"},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank"},{"n":"GAMEPASS","v":35,"p":0,"dest":"Itau"},{"n":"NETFLIX","v":25.8,"p":0,"dest":"Nubank"},{"n":"MAE","v":60,"p":0,"dest":"Inter"},{"n":"TV BOX","v":30,"p":0,"dest":"Nubank"}],"d30":[{"n":"BARBERO","v":100,"p":0,"dest":""},{"n":"CLARO","v":55.34,"p":0,"dest":"Inter"},{"n":"COMBUSTIVEL","v":450,"p":0,"dest":"Itau"},{"n":"CARRO","v":300,"p":0,"dest":"Itau"},{"n":"VIVO","v":100,"p":0,"dest":"Inter"}]},{"id":"NOV-2025","label":"Nov/2025","year":"2025","vale":1207.5,"pg":1425,"extra":0,"d15":[{"n":"SEGURO","v":95,"p":0,"dest":""},{"n":"GOOGLE ONE","v":7.99,"p":0,"dest":"Nubank"},{"n":"SPOTIFY","v":11.9,"p":0,"dest":"Nubank"},{"n":"CARRO","v":300,"p":0,"dest":"Itau"},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank"},{"n":"NETFLIX","v":25.8,"p":0,"dest":"Nubank"},{"n":"MAE","v":60,"p":0,"dest":"Inter"},{"n":"TV BOX","v":30,"p":0,"dest":"Nubank"},{"n":"FONE","v":107.43,"p":0,"dest":"Nubank"}],"d30":[{"n":"BARBERO","v":100,"p":0,"dest":""},{"n":"CLARO","v":55.34,"p":0,"dest":"Inter"},{"n":"COMBUSTIVEL","v":450,"p":0,"dest":"Itau"},{"n":"CARRO","v":300,"p":0,"dest":"Itau"},{"n":"VIVO","v":100,"p":0,"dest":"Inter"}]},{"id":"DEZ-2025","label":"Dez/2025","year":"2025","vale":1207.5,"pg":1425,"extra":0,"d15":[{"n":"SEGURO","v":95,"p":0,"dest":""},{"n":"GOOGLE ONE","v":7.99,"p":0,"dest":"Nubank"},{"n":"SPOTIFY","v":11.9,"p":0,"dest":"Nubank"},{"n":"CARRO","v":400,"p":0,"dest":"Itau"},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank"},{"n":"NETFLIX","v":25.8,"p":0,"dest":"Nubank"},{"n":"MAE","v":60,"p":0,"dest":"Inter"},{"n":"TV BOX","v":30,"p":0,"dest":"Nubank"}],"d30":[{"n":"BARBERO","v":100,"p":0,"dest":""},{"n":"CLARO","v":55.34,"p":0,"dest":"Inter"},{"n":"COMBUSTIVEL","v":450,"p":0,"dest":"Itau"},{"n":"CARRO","v":400,"p":0,"dest":"Itau"},{"n":"VIVO","v":100,"p":0,"dest":"Inter"},{"n":"FONE","v":107.43,"p":0,"dest":"Nubank"}]},{"id":"JAN-2026","label":"Jan/2026","year":"2026","vale":1207.5,"pg":1425,"extra":0,"d15":[{"n":"SEGURO","v":110,"p":0,"dest":""},{"n":"GOOGLE ONE","v":9.99,"p":0,"dest":"Nubank"},{"n":"SPOTIFY","v":12.9,"p":0,"dest":"Nubank"},{"n":"CARRO","v":453,"p":0,"dest":"Itau"},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank"},{"n":"NETFLIX","v":25.8,"p":0,"dest":"Nubank"},{"n":"TV BOX","v":30,"p":0,"dest":"Nubank"},{"n":"KIMONO","v":45,"p":3,"dest":"Nubank"},{"n":"IPVA","v":219.55,"p":5,"dest":"Itau"},{"n":"AR CONDI","v":143.53,"p":12,"dest":"Nubank"}],"d30":[{"n":"BARBERO","v":100,"p":0,"dest":""},{"n":"CLARO","v":55.34,"p":0,"dest":"Inter"},{"n":"COMBUSTIVEL","v":440,"p":0,"dest":"Itau"},{"n":"CARRO","v":400,"p":0,"dest":"Itau"},{"n":"VIVO","v":110,"p":0,"dest":"Inter"},{"n":"IPVA","v":109.8,"p":0,"dest":"Itau"},{"n":"SEGURO VIDA","v":39.9,"p":0,"dest":"Inter"}]},{"id":"FEV-2026","label":"Fev/2026","year":"2026","vale":1207.5,"pg":1431,"extra":0,"d15":[{"n":"SEGURO","v":110,"p":0,"dest":""},{"n":"GOOGLE ONE","v":9.99,"p":0,"dest":"Nubank"},{"n":"SPOTIFY","v":12.9,"p":0,"dest":"Nubank"},{"n":"CARRO","v":453,"p":48,"dest":"Itau"},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank"},{"n":"NETFLIX","v":25.8,"p":0,"dest":"Nubank"},{"n":"TV BOX","v":30,"p":0,"dest":"Nubank"},{"n":"KIMONO","v":45,"p":0,"dest":"Nubank"},{"n":"IPVA","v":109.8,"p":0,"dest":"Itau"},{"n":"AR CONDI","v":143.53,"p":12,"dest":"Nubank","pPaid":1,"paid":false}],"d30":[{"n":"BARBERO","v":100,"p":0,"dest":""},{"n":"CLARO","v":55.34,"p":0,"dest":"Inter"},{"n":"COMBUSTIVEL","v":440,"p":0,"dest":"Itau"},{"n":"CARRO","v":400,"p":48,"dest":"Itau"},{"n":"VIVO","v":110,"p":0,"dest":"Inter"},{"n":"IPVA","v":109.8,"p":0,"dest":"Itau"},{"n":"SEGURO VIDA","v":39.9,"p":0,"dest":"Inter"}]},{"id":"MAR-2026","label":"Mar/2026","year":"2026","vale":1207.5,"pg":1431,"extra":0,"d15":[{"n":"SEGURO","v":110,"p":0,"dest":"","paid":true},{"n":"GOOGLE ONE","v":9.99,"p":0,"dest":"Nubank","paid":true},{"n":"SPOTIFY","v":12.9,"p":0,"dest":"Nubank","paid":true},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank","paid":true},{"n":"NETFLIX","v":25.8,"p":0,"dest":"Nubank","paid":true},{"n":"TV BOX","v":30,"p":0,"dest":"Nubank","paid":true},{"n":"KIMONO","v":45,"p":0,"dest":"Nubank","paid":true},{"n":"IPVA","v":109.8,"p":0,"dest":"Itau","paid":true},{"n":"AGIOTA","v":100,"p":0,"dest":"Inter","paid":true},{"n":"CARRO","v":453,"p":48,"dest":"Itau","pPaid":1,"paid":true},{"n":"AR CONDI","v":143.53,"p":12,"dest":"Nubank","pPaid":2,"paid":false}],"d30":[{"n":"BARBERO","v":100,"p":0,"dest":""},{"n":"CLARO","v":55.34,"p":0,"dest":"Inter"},{"n":"COMBUSTIVEL","v":440,"p":0,"dest":"Itau"},{"n":"SEGURO VIDA","v":39.9,"p":0,"dest":"Inter"},{"n":"IPVA","v":109.8,"p":0,"dest":"Itau"},{"n":"MULTIMIDIA","v":86.5,"p":3,"dest":"Nubank"},{"n":"CARRO","v":400,"p":48,"dest":"Itau","pPaid":1,"paid":false}]},{"id":"ABR-2026","label":"Abr/2026","year":"2026","vale":1207.5,"pg":1431,"extra":0,"d15":[{"n":"SEGURO","v":110,"p":7,"dest":"Itau"},{"n":"GOOGLE ONE","v":9.99,"p":0,"dest":"Nubank","paid":false},{"n":"SPOTIFY","v":12.9,"p":0,"dest":"Nubank","paid":false},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank","paid":false},{"n":"NETFLIX","v":25.8,"p":0,"dest":"Nubank","paid":false},{"n":"TV BOX","v":30,"p":0,"dest":"Nubank","paid":false},{"n":"KIMONO","v":45,"p":1,"dest":"Nubank","paid":false},{"n":"IPVA","v":109.8,"p":0,"dest":"Itau","paid":false},{"n":"AGIOTA","v":100,"p":0,"dest":"Nubank","paid":false},{"n":"MULTIMIDIA","v":86.5,"p":1,"dest":"Nubank"},{"n":"CARRO","v":453,"p":48,"dest":"Itau","pPaid":2,"paid":false},{"n":"AR CONDI","v":143.53,"p":12,"dest":"Nubank","pPaid":3,"paid":false}],"d30":[{"n":"BARBERO","v":100,"p":0,"dest":"Nubank","paid":true},{"n":"CLARO","v":55.34,"p":0,"dest":"Nubank","paid":true},{"n":"COMBUSTIVEL","v":440,"p":0,"dest":"Inter","paid":true},{"n":"SEGURO","v":39.9,"p":7,"dest":"Itau","paid":true},{"n":"IPVA","v":109.8,"p":0,"dest":"Itau","paid":true},{"n":"MULTIMIDIA","v":86.5,"p":1,"dest":"Nubank","paid":true},{"n":"KIMONO","v":45,"p":0,"dest":"Nubank","paid":true},{"n":"CARRO","v":400,"p":48,"dest":"Itau","pPaid":2,"paid":true}]},{"id":"MAI-2026","label":"Mai/2026","year":"2026","vale":1207.5,"pg":1431,"extra":0,"d15":[{"n":"SEGURO","v":110,"p":7,"dest":"Itau","pPaid":1,"paid":false},{"n":"GOOGLE ONE","v":9.99,"p":0,"dest":"Nubank","paid":false},{"n":"SPOTIFY","v":12.9,"p":0,"dest":"Nubank","paid":false},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank","paid":false},{"n":"NETFLIX","v":25.8,"p":0,"dest":"Nubank","paid":false},{"n":"TV BOX","v":30,"p":0,"dest":"Nubank","paid":false},{"n":"IPVA","v":109.8,"p":0,"dest":"Itau","paid":false},{"n":"MULTIMIDIA","v":86.5,"p":0,"dest":"Nubank","pPaid":0,"paid":false},{"n":"CARRO","v":453,"p":48,"dest":"Itau","pPaid":3,"paid":false},{"n":"AR CONDI","v":143.53,"p":12,"dest":"Nubank","pPaid":4,"paid":false}],"d30":[{"n":"BARBERO","v":100,"p":0,"dest":"Nubank","paid":false},{"n":"CLARO","v":55.34,"p":0,"dest":"Nubank","paid":false},{"n":"COMBUSTIVEL","v":440,"p":0,"dest":"Inter","paid":false},{"n":"SEGURO","v":39.9,"p":7,"dest":"Itau","paid":false,"pPaid":1},{"n":"IPVA","v":109.8,"p":0,"dest":"Itau","paid":false},{"n":"MULTIMIDIA","v":86.5,"p":0,"dest":"Nubank","pPaid":0,"paid":false},{"n":"CARRO","v":400,"p":48,"dest":"Itau","pPaid":3,"paid":false}]},{"id":"JUN-2026","label":"Jun/2026","year":"2026","vale":1207.5,"pg":1431,"extra":0,"d15":[{"n":"SEGURO","v":110,"p":7,"dest":"Itau","pPaid":2,"paid":false},{"n":"GOOGLE ONE","v":9.99,"p":0,"dest":"Nubank","paid":false},{"n":"SPOTIFY","v":12.9,"p":0,"dest":"Nubank","paid":false},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank","paid":false},{"n":"NETFLIX","v":25.8,"p":0,"dest":"Nubank","paid":false},{"n":"TV BOX","v":30,"p":0,"dest":"Nubank","paid":false},{"n":"CARRO","v":453,"p":48,"dest":"Itau","pPaid":4,"paid":false},{"n":"AR CONDI","v":143.53,"p":12,"dest":"Nubank","pPaid":5,"paid":false}],"d30":[{"n":"BARBERO","v":100,"p":0,"dest":"Nubank","paid":false},{"n":"CLARO","v":55.34,"p":0,"dest":"Nubank","paid":false},{"n":"COMBUSTIVEL","v":440,"p":0,"dest":"Inter","paid":false},{"n":"SEGURO","v":39.9,"p":7,"dest":"Itau","paid":false,"pPaid":2},{"n":"CARRO","v":400,"p":48,"dest":"Itau","pPaid":4,"paid":false}]},{"id":"JUL-2026","label":"Jul/2026","year":"2026","vale":1207.5,"pg":1431,"extra":0,"d15":[{"n":"SEGURO","v":110,"p":7,"dest":"Itau","pPaid":3,"paid":false},{"n":"GOOGLE ONE","v":9.99,"p":0,"dest":"Nubank","paid":false},{"n":"SPOTIFY","v":12.9,"p":0,"dest":"Nubank","paid":false},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank","paid":false},{"n":"NETFLIX","v":25.8,"p":0,"dest":"Nubank","paid":false},{"n":"TV BOX","v":30,"p":0,"dest":"Nubank","paid":false},{"n":"CARRO","v":453,"p":48,"dest":"Itau","pPaid":5,"paid":false},{"n":"AR CONDI","v":143.53,"p":12,"dest":"Nubank","pPaid":6,"paid":false}],"d30":[{"n":"BARBERO","v":100,"p":0,"dest":"Nubank","paid":false},{"n":"CLARO","v":55.34,"p":0,"dest":"Nubank","paid":false},{"n":"COMBUSTIVEL","v":440,"p":0,"dest":"Inter","paid":false},{"n":"SEGURO","v":39.9,"p":7,"dest":"Itau","paid":false,"pPaid":3},{"n":"CARRO","v":400,"p":48,"dest":"Itau","pPaid":5,"paid":false}]},{"id":"AGO-2026","label":"Ago/2026","year":"2026","vale":1207.5,"pg":1431,"extra":0,"d15":[{"n":"SEGURO","v":110,"p":7,"dest":"Itau","pPaid":4,"paid":false},{"n":"GOOGLE ONE","v":9.99,"p":0,"dest":"Nubank","paid":false},{"n":"SPOTIFY","v":12.9,"p":0,"dest":"Nubank","paid":false},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank","paid":false},{"n":"NETFLIX","v":25.8,"p":0,"dest":"Nubank","paid":false},{"n":"TV BOX","v":30,"p":0,"dest":"Nubank","paid":false},{"n":"CARRO","v":453,"p":48,"dest":"Itau","pPaid":6,"paid":false},{"n":"AR CONDI","v":143.53,"p":12,"dest":"Nubank","pPaid":7,"paid":false}],"d30":[{"n":"BARBERO","v":100,"p":0,"dest":"Nubank","paid":false},{"n":"CLARO","v":55.34,"p":0,"dest":"Nubank","paid":false},{"n":"COMBUSTIVEL","v":440,"p":0,"dest":"Inter","paid":false},{"n":"SEGURO","v":39.9,"p":7,"dest":"Itau","paid":false,"pPaid":4},{"n":"CARRO","v":400,"p":48,"dest":"Itau","pPaid":6,"paid":false}]},{"id":"SET-2026","label":"Set/2026","year":"2026","vale":1207.5,"pg":1431,"extra":0,"d15":[{"n":"SEGURO","v":110,"p":7,"dest":"Itau","pPaid":5,"paid":false},{"n":"GOOGLE ONE","v":9.99,"p":0,"dest":"Nubank","paid":false},{"n":"SPOTIFY","v":12.9,"p":0,"dest":"Nubank","paid":false},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank","paid":false},{"n":"NETFLIX","v":25.8,"p":0,"dest":"Nubank","paid":false},{"n":"TV BOX","v":30,"p":0,"dest":"Nubank","paid":false},{"n":"CARRO","v":453,"p":48,"dest":"Itau","pPaid":7,"paid":false},{"n":"AR CONDI","v":143.53,"p":12,"dest":"Nubank","pPaid":8,"paid":false}],"d30":[{"n":"BARBERO","v":100,"p":0,"dest":"Nubank","paid":false},{"n":"CLARO","v":55.34,"p":0,"dest":"Nubank","paid":false},{"n":"COMBUSTIVEL","v":440,"p":0,"dest":"Inter","paid":false},{"n":"SEGURO","v":39.9,"p":7,"dest":"Itau","paid":false,"pPaid":5},{"n":"CARRO","v":400,"p":48,"dest":"Itau","pPaid":7,"paid":false}]},{"id":"OUT-2026","label":"Out/2026","year":"2026","vale":1207.5,"pg":1431,"extra":0,"d15":[{"n":"SEGURO","v":110,"p":7,"dest":"Itau","pPaid":6,"paid":false},{"n":"GOOGLE ONE","v":9.99,"p":0,"dest":"Nubank","paid":false},{"n":"SPOTIFY","v":12.9,"p":0,"dest":"Nubank","paid":false},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank","paid":false},{"n":"NETFLIX","v":25.8,"p":0,"dest":"Nubank","paid":false},{"n":"TV BOX","v":30,"p":0,"dest":"Nubank","paid":false},{"n":"CARRO","v":453,"p":48,"dest":"Itau","pPaid":8,"paid":false},{"n":"AR CONDI","v":143.53,"p":12,"dest":"Nubank","pPaid":9,"paid":false}],"d30":[{"n":"BARBERO","v":100,"p":0,"dest":"Nubank","paid":false},{"n":"CLARO","v":55.34,"p":0,"dest":"Nubank","paid":false},{"n":"COMBUSTIVEL","v":440,"p":0,"dest":"Inter","paid":false},{"n":"SEGURO","v":39.9,"p":7,"dest":"Itau","paid":false,"pPaid":6},{"n":"CARRO","v":400,"p":48,"dest":"Itau","pPaid":8,"paid":false}]},{"id":"NOV-2026","label":"Nov/2026","year":"2026","vale":1207.5,"pg":1431,"extra":0,"d15":[{"n":"SEGURO","v":110,"p":0,"dest":"Itau","pPaid":0,"paid":false},{"n":"GOOGLE ONE","v":9.99,"p":0,"dest":"Nubank","paid":false},{"n":"SPOTIFY","v":12.9,"p":0,"dest":"Nubank","paid":false},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank","paid":false},{"n":"NETFLIX","v":25.8,"p":0,"dest":"Nubank","paid":false},{"n":"TV BOX","v":30,"p":0,"dest":"Nubank","paid":false},{"n":"CARRO","v":453,"p":48,"dest":"Itau","pPaid":9,"paid":false},{"n":"AR CONDI","v":143.53,"p":12,"dest":"Nubank","pPaid":10,"paid":false}],"d30":[{"n":"BARBERO","v":100,"p":0,"dest":"Nubank","paid":false},{"n":"CLARO","v":55.34,"p":0,"dest":"Nubank","paid":false},{"n":"COMBUSTIVEL","v":440,"p":0,"dest":"Inter","paid":false},{"n":"SEGURO","v":39.9,"p":0,"dest":"Itau","paid":false,"pPaid":0},{"n":"CARRO","v":400,"p":48,"dest":"Itau","pPaid":9,"paid":false}]},{"id":"DEZ-2026","label":"Dez/2026","year":"2026","vale":1207.5,"pg":1431,"extra":0,"d15":[{"n":"GOOGLE ONE","v":9.99,"p":0,"dest":"Nubank","paid":false},{"n":"SPOTIFY","v":12.9,"p":0,"dest":"Nubank","paid":false},{"n":"ICLOUD","v":5,"p":0,"dest":"Nubank","paid":false},{"n":"NETFLIX","v":25.8,"p":0,"dest":"Nubank","paid":false},{"n":"TV BOX","v":30,"p":0,"dest":"Nubank","paid":false},{"n":"CARRO","v":453,"p":48,"dest":"Itau","pPaid":10,"paid":false},{"n":"AR CONDI","v":143.53,"p":12,"dest":"Nubank","pPaid":11,"paid":false}],"d30":[{"n":"BARBERO","v":100,"p":0,"dest":"Nubank","paid":false},{"n":"CLARO","v":55.34,"p":0,"dest":"Nubank","paid":false},{"n":"COMBUSTIVEL","v":440,"p":0,"dest":"Inter","paid":false},{"n":"CARRO","v":400,"p":48,"dest":"Itau","pPaid":10,"paid":false}]}];
 
 // ══ STATE ════════════════════════════════════════════════════════════════════
 let data=[], activeYear='2026', activeMonth='MAR-2026';
@@ -521,7 +469,14 @@ let bankFilter=''; // '', 'Itau', 'Inter', 'Nubank'
 let valVisible=true;
 
 function loadData(){
-  try{const h=location.hash.slice(1);if(h.startsWith('data=')){const d=JSON.parse(atob(h.slice(5)));if(Array.isArray(d)&&d.length)return d;}}catch(e){}
+  try{
+    const h=location.hash.slice(1);
+    if(h.startsWith('data=')){
+      const raw=h.slice(5);
+      // async decompress — return promise, init() will handle it
+      return '__async__'+raw;
+    }
+  }catch(e){}
   try{const s=localStorage.getItem('findata_v4');if(s)return JSON.parse(s);}catch(e){}
   return JSON.parse(JSON.stringify(INITIAL));
 }
@@ -539,12 +494,37 @@ const getM=id=>data.find(d=>d.id===id);
 
 // ══ INIT ════════════════════════════════════════════════════════════════════
 function init(){
-  data=loadData();
+  const raw=loadData();
+  if(typeof raw==='string'&&raw.startsWith('__async__')){
+    const encoded=raw.slice(9);
+    decompressData(encoded).then(decoded=>{
+      const isMinified=decoded[0]&&'i' in decoded[0];
+      data=isMinified?expandData(decoded):decoded;
+      if(!Array.isArray(data)||!data.length)data=JSON.parse(JSON.stringify(INITIAL));
+      sortData();saveData();
+      _initState();
+    }).catch(()=>{
+      data=JSON.parse(JSON.stringify(INITIAL));
+      _initState();
+    });
+  } else {
+    data=Array.isArray(raw)?raw:JSON.parse(JSON.stringify(INITIAL));
+    _initState();
+  }
+}
+function _initState(){
   const ys=years();
   const curYear=String(new Date().getFullYear());
   activeYear=ys.includes(curYear)?curYear:(ys.includes('2026')?'2026':ys[ys.length-1]);
   activeMonth=data.filter(d=>d.year===activeYear).pop()?.id||data[data.length-1]?.id;
+  // auto-enable year filter for current year
+  yearFilterOn=true;
+  filteredYears=new Set([activeYear]);
   render();
+  // sync toggle UI after render
+  const tog=document.getElementById('yearToggle');
+  if(tog)tog.checked=true;
+  document.getElementById('yearPills').style.display='flex';
 }
 
 // ══ BANK FILTER ═════════════════════════════════════════════════════════════
@@ -959,11 +939,70 @@ function confirmCopy(){
 }
 
 // ══ SHARE ═══════════════════════════════════════════════════════════════════
+// Minify/expand data keys to reduce payload size
+function minifyData(d){
+  // month: {id,label,year,vale,pg,extra,d15:[],d30:[]}
+  // item:  {n,v,p,pPaid,dest,paid}
+  // minified month keys: i=id,l=label,y=year,a=vale,b=pg,e=extra,f=d15,g=d30
+  // minified item keys:  n=n,v=v,p=p,q=pPaid,d=dest,k=paid
+  return d.map(m=>({
+    i:m.id,l:m.label,y:m.year,
+    a:m.vale,b:m.pg,
+    ...(m.extra?{e:m.extra}:{}),
+    f:m.d15.map(x=>({n:x.n,v:x.v,...(x.p?{p:x.p}:{}),...(x.pPaid?{q:x.pPaid}:{}),...(x.dest?{d:x.dest}:{}),...(x.paid?{k:1}:{})})),
+    g:m.d30.map(x=>({n:x.n,v:x.v,...(x.p?{p:x.p}:{}),...(x.pPaid?{q:x.pPaid}:{}),...(x.dest?{d:x.dest}:{}),...(x.paid?{k:1}:{})}))
+  }));
+}
+function expandData(d){
+  return d.map(m=>({
+    id:m.i,label:m.l,year:m.y,
+    vale:m.a,pg:m.b,extra:m.e||0,
+    d15:(m.f||[]).map(x=>({n:x.n,v:x.v,p:x.p||0,pPaid:x.q||0,dest:x.d||'',paid:!!x.k})),
+    d30:(m.g||[]).map(x=>({n:x.n,v:x.v,p:x.p||0,pPaid:x.q||0,dest:x.d||'',paid:!!x.k}))
+  }));
+}
+
+// LZ-based compression using built-in CompressionStream (modern browsers)
+// Fallback: just minify + btoa
+async function compressData(obj){
+  const json=JSON.stringify(minifyData(obj));
+  try{
+    const stream=new Blob([json]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+    const buf=await new Response(stream).arrayBuffer();
+    const bytes=new Uint8Array(buf);
+    let bin='';for(let b of bytes)bin+=String.fromCharCode(b);
+    return'z'+btoa(bin);
+  }catch(e){
+    return'b'+btoa(unescape(encodeURIComponent(json)));
+  }
+}
+async function decompressData(str){
+  if(str.startsWith('z')){
+    const bin=atob(str.slice(1));
+    const bytes=new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+    const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+    const text=await new Response(stream).text();
+    return JSON.parse(text);
+  } else if(str.startsWith('b')){
+    return JSON.parse(decodeURIComponent(escape(atob(str.slice(1)))));
+  } else {
+    // legacy plain btoa
+    return JSON.parse(atob(str));
+  }
+}
+
 function openShare(){
-  const encoded=btoa(JSON.stringify(data));
-  const url=`${location.origin}${location.pathname}#data=${encoded}`;
-  document.getElementById('shareUrl').textContent=url;
-  document.getElementById('modalShare').classList.add('open');
+  compressData(data).then(encoded=>{
+    const url=`${location.origin}${location.pathname}#data=${encoded}`;
+    const orig=btoa(JSON.stringify(data)).length;
+    const comp=encoded.length;
+    const saved=Math.round((1-comp/orig)*100);
+    document.getElementById('shareUrl').textContent=url;
+    document.getElementById('shareSizeInfo').textContent=
+      `Tamanho: ${(comp/1024).toFixed(1)} KB  •  ${saved}% menor que antes`;
+    document.getElementById('modalShare').classList.add('open');
+  });
 }
 function copyShareLink(){
   const url=document.getElementById('shareUrl').textContent;
@@ -974,17 +1013,19 @@ function copyShareLink(){
 function openShareLink(){window.open(document.getElementById('shareUrl').textContent,'_blank');}
 function importFromUrl(){
   const raw=document.getElementById('importUrl').value.trim();
-  try{
-    const hash=raw.includes('#data=')?raw.split('#data=')[1]:raw;
-    const decoded=JSON.parse(atob(hash));
+  const hash=raw.includes('#data=')?raw.split('#data=')[1]:raw;
+  decompressData(hash).then(decoded=>{
     if(!Array.isArray(decoded)||!decoded.length)throw new Error();
+    // detect if it's minified (has 'i' key) or full
+    const isMinified=decoded[0]&&'i' in decoded[0];
+    const full=isMinified?expandData(decoded):decoded;
     const snap=JSON.parse(JSON.stringify(data));
-    data=decoded;sortData();saveData();
+    data=full;sortData();saveData();
     activeYear=years()[years().length-1];
     activeMonth=data.filter(d=>d.year===activeYear).pop()?.id||data[data.length-1].id;
     closeModal('modalShare');render();
     toast('✅ Dados importados!',()=>{data=snap;sortData();saveData();render();});
-  }catch(e){toast('⚠️ Link inválido ou corrompido.');}
+  }).catch(()=>toast('⚠️ Link inválido ou corrompido.'));
 }
 
 // ══ MODAL + TOAST ═══════════════════════════════════════════════════════════
