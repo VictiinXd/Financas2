@@ -302,6 +302,30 @@ tr:hover td{background:var(--raised)}
 /* ── KEYBOARD SHORTCUTS ── */
 .kbd-hint{font-size:.62rem;color:var(--muted);background:var(--raised);border:1px solid var(--border);border-radius:5px;padding:1px 5px;font-family:var(--mono)}
 
+
+/* ── CATEGORIES ── */
+.cat-badge{font-size:.58rem;border-radius:10px;padding:1px 6px;flex-shrink:0;font-weight:600;border:1px solid;cursor:pointer;transition:opacity .15s}
+.cat-badge:hover{opacity:.75}
+.cat-sel{width:90px}
+@media(max-width:768px){.cat-sel{width:78px}}
+@media(max-width:400px){.cat-sel{width:68px}}
+
+/* ── ITEM SELECTOR (sum) ── */
+.sum-bar{display:none;align-items:center;gap:8px;padding:6px 14px;background:rgba(0,212,170,.05);border-top:1px solid rgba(0,212,170,.15);font-size:.75rem;flex-wrap:wrap}
+.sum-bar.active{display:flex}
+.sum-total{font-family:var(--mono);font-size:.85rem;color:var(--accent);font-weight:600}
+.sum-count{color:var(--muted);font-size:.72rem}
+.exp-row.sum-selected{background:rgba(0,212,170,.07)!important;outline:1px solid rgba(0,212,170,.25);outline-offset:-1px}
+.sum-check{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;background:transparent}
+.sum-check.on{background:var(--accent);border-color:var(--accent)}
+.sum-check.on::after{content:'✓';font-size:.6rem;color:#0a0e1a;font-weight:700}
+.sum-mode-btn{font-size:.68rem;padding:3px 9px;border:1px solid var(--border);border-radius:20px;cursor:pointer;background:var(--raised);transition:all .2s;white-space:nowrap}
+.sum-mode-btn.on{background:var(--accent);color:#0a0e1a;border-color:var(--accent);font-weight:700}
+/* sum checkboxes: hidden by default, shown when parent has sum-mode-active */
+.sum-check{display:none!important}
+.sum-mode-active .sum-check{display:flex!important}
+.sum-mode-active .exp-row{cursor:pointer}
+.sum-mode-active .exp-row:hover{background:rgba(0,212,170,.06)!important}
 /* ── BULK DELETE ── */
 .bulk-del-list{max-height:360px;overflow-y:auto;margin-top:10px;border:1px solid var(--border);border-radius:10px}
 .bulk-del-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
@@ -651,18 +675,11 @@ tr:hover td{background:var(--raised)}
 
 <script>
 // ══ PASSWORD ════════════════════════════════════════════════════════════════
-const PW_HASH = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'; // sha256("password") placeholder — replaced below
-// We store a simple hash of the pw. sha256("rafaella123")
-const CORRECT_HASH = (async()=>{
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('claudia'));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-})();
+const CORRECT_PW = 'claudia';
 
-async function checkPw(){
+function checkPw(){
   const val = document.getElementById('pwInput').value;
-  const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(val)))).map(b=>b.toString(16).padStart(2,'0')).join('');
-  const correct = await CORRECT_HASH;
-  if(hash===correct){
+  if(val === CORRECT_PW){
     document.getElementById('loginScreen').style.display='none';
     document.getElementById('app').style.display='block';
     sessionStorage.setItem('fin_auth','1');
@@ -686,12 +703,7 @@ function logout(){
   document.getElementById('pwInput').value='';
   document.getElementById('loginErr').textContent='';
 }
-// Auto-login if already authenticated this session
-if(sessionStorage.getItem('fin_auth')==='1'){
-  document.getElementById('loginScreen').style.display='none';
-  document.getElementById('app').style.display='block';
-  document.addEventListener('DOMContentLoaded',init);
-}
+
 
 // ══ DATA ════════════════════════════════════════════════════════════════════
 const INITIAL=[];
@@ -702,6 +714,7 @@ let barChart, lineChart;
 let bankFilter=''; // '', 'Itau', 'Inter', 'Nubank'
 let valVisible=true;
 let paidFilter={}; // {monthId_key: 'all'|'paid'|'pend'}
+// sum state managed via DOM data attributes only
 let editHistory=[]; // [{ts, action, detail}]
 const MAX_HIST=200;
 
@@ -935,70 +948,116 @@ function destSelect(id,selected,cls='dest-sel'){
   return`<select class="${cls}" id="${id}">${DEST_OPTS.map(o=>`<option value="${o}"${o===selected?' selected':''}>${o||'— carteira'}</option>`).join('')}</select>`;
 }
 
+// ── CATEGORIES ──────────────────────────────────────────────────────────────
+const CAT_DEFS=[
+  {id:'',label:'— cat.',color:'#6b7fa3',bg:'rgba(107,127,163,.12)'},
+  {id:'moradia',label:'🏠 Moradia',color:'#4f9eff',bg:'rgba(79,158,255,.12)'},
+  {id:'transporte',label:'🚗 Transporte',color:'#ec7000',bg:'rgba(236,112,0,.12)'},
+  {id:'alimentacao',label:'🍔 Alimentação',color:'#00b341',bg:'rgba(0,179,65,.12)'},
+  {id:'saude',label:'❤️ Saúde',color:'#ff6b6b',bg:'rgba(255,107,107,.12)'},
+  {id:'lazer',label:'🎮 Lazer',color:'#a78bfa',bg:'rgba(167,139,250,.12)'},
+  {id:'educacao',label:'📚 Educação',color:'#ffd166',bg:'rgba(255,209,102,.12)'},
+  {id:'vestuario',label:'👕 Vestuário',color:'#00d4aa',bg:'rgba(0,212,170,.12)'},
+  {id:'assinatura',label:'📱 Assinatura',color:'#8a05be',bg:'rgba(138,5,190,.12)'},
+  {id:'outros',label:'📦 Outros',color:'#6b7fa3',bg:'rgba(107,127,163,.12)'},
+];
+function getCat(id){return CAT_DEFS.find(c=>c.id===id)||CAT_DEFS[0];}
+function catSelect(id,selected,cls='cat-sel'){
+  return`<select class="${cls}" id="${id}">${CAT_DEFS.map(c=>`<option value="${c.id}"${c.id===selected?' selected':''}>${c.label}</option>`).join('')}</select>`;
+}
+function catBadge(catId){
+  if(!catId)return'';
+  const c=getCat(catId);
+  return`<span class="cat-badge" style="color:${c.color};border-color:${c.color};background:${c.bg}" title="Categoria: ${c.label.replace(/.*? /,'')}">${c.label}</span>`;
+}
+
 function quinzCard(m,key,cls,title,incLabel,income){
   const spent=sumK(m[key]);
   const saveField=key==='d15'?'save15':'save30';
   const savedAmt=m[saveField]||0;
   const sld=income-spent-savedAmt;
-  // apply bank filter: show all rows but dim non-matching when filter active
-  const pf=paidFilter[`${m.id}_${key}`]||'all';
-  const filteredRows=m[key].filter((e,i)=>{
+  const cardKey=m.id+'_'+key;
+
+  const mid=m.id;
+
+  // paid filter
+  const pf=paidFilter[cardKey]||'all';
+  const filteredRows=m[key].filter(function(e){
     if(pf==='paid')return e.paid;
     if(pf==='pend')return !e.paid;
     return true;
   });
-  const rows=filteredRows.map((e)=>{
-    const origI=m[key].indexOf(e);
-    return expRow(m.id,key,e,origI);
+  const rows=filteredRows.map(function(e){
+    return expRow(mid,key,e,m[key].indexOf(e));
   }).join('')||'<div class="empty">Sem gastos.</div>';
-  // filtered total for display
-  const filtArr=bankFilter?m[key].filter(e=>e.dest===bankFilter):m[key];
-  const filtSpent=filtArr.reduce((a,b)=>a+b.v,0);
-  const filtLabel=bankFilter?`<span style="font-size:.62rem;color:var(--muted);margin-left:6px">(${bankFilter}: ${fmtR(filtSpent)})</span>`:'';
+
+  // bank filter display
+  const filtArr=bankFilter?m[key].filter(function(e){return e.dest===bankFilter;}):m[key];
+  const filtSpent=filtArr.reduce(function(a,b){return a+b.v;},0);
+  const filtLabel=bankFilter?('<span style="font-size:.62rem;color:var(--muted);margin-left:6px">('+bankFilter+': '+fmtR(filtSpent)+')</span>'):'';
   const saldoSemGuardar=income-spent;
-  return`<div class="q-card">
-    <div class="q-header ${cls}">
-      <div>
-        <span class="q-badge ${cls}">${title}</span>
-        <div class="q-income-edit">
-          <span style="font-size:.68rem;color:var(--muted)">${incLabel}:</span>
-          <span class="income-val" onclick="editIncome('${m.id}','${key}')">${vWrap(fmtR(income))}</span>
-        </div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:.68rem;color:var(--muted)">Gasto${filtLabel}</div>
-        <div style="font-family:var(--mono);font-size:.85rem;color:${cls==='dia15'?'var(--blue)':'var(--accent2)'}">${vWrap(fmtR(spent))}</div>
-      </div>
-    </div>
-    <div class="paid-filter-bar">
-      <span style="font-size:.68rem;color:var(--muted)">Ver:</span>
-      <div class="pf-pill pf-all on" id="pf_all_${key}_${m.id}" onclick="setPaidFilter('${m.id}','${key}','all')">Todos</div>
-      <div class="pf-pill pf-paid" id="pf_paid_${key}_${m.id}" onclick="setPaidFilter('${m.id}','${key}','paid')">✓ Pagos</div>
-      <div class="pf-pill pf-pend" id="pf_pend_${key}_${m.id}" onclick="setPaidFilter('${m.id}','${key}','pend')">⏳ Pendentes</div>
-      <span style="font-size:.62rem;color:var(--muted);margin-left:4px">(${m[key].filter(e=>!e.paid).length} pend.)</span>
-    </div>
-    ${sld<0?`<div class="q-alert">⚠️ Saldo negativo: ${fmtR(Math.abs(sld))} a descoberto nesta quinzena!</div>`:''}
-    <div class="expense-list" id="list_${key}_${m.id}">${rows}</div>
-    <div class="add-row">
-      <input type="text" id="name_${key}_${m.id}" placeholder="Nome…" onkeydown="if(event.key==='Enter')addExp('${m.id}','${key}')">
-      <input type="number" id="val_${key}_${m.id}" placeholder="Valor" step="0.01" min="0" onkeydown="if(event.key==='Enter')addExp('${m.id}','${key}')">
-      <input type="number" id="par_${key}_${m.id}" placeholder="parc." step="1" min="0" class="par-add" title="Parcelas">
-      ${destSelect(`dest_${key}_${m.id}`,'')}
-      <button class="add-btn" onclick="addExp('${m.id}','${key}')">+</button>
-    </div>
-    <div class="guardar-row">
-      <span class="guardar-label">🪙 Guardar:</span>
-      <span class="guardar-val val-blur${!valVisible?' val-hidden':''}" onclick="editGuardar('${m.id}','${saveField}')">${fmtR(savedAmt)}</span>
-      ${savedAmt>0?`<span class="guardar-badge">restam ${vWrap(fmtR(saldoSemGuardar-savedAmt<0?0:saldoSemGuardar-savedAmt))} livres</span>`:'<span class="guardar-badge" style="font-size:.65rem">clique para definir</span>'}
-    </div>
-    <div class="q-footer">
-      <button class="btn btn-purple" style="font-size:.7rem;padding:4px 10px" onclick="openCopy('${m.id}','${key}')">📋 Copiar anterior</button>
-      <div>
-        <span style="font-size:.68rem;color:var(--muted)">Saldo: </span>
-        <span class="q-saldo" style="color:${sld>=0?'var(--accent)':'var(--accent2)'}">${sld<0?'− ':''}${vWrap(fmtR(Math.abs(sld)))}</span>
-      </div>
-    </div>
-  </div>`;
+
+  var sumBarHtml='';
+
+  const alertHtml=sld<0?('<div class="q-alert">⚠️ Saldo negativo: '+fmtR(Math.abs(sld))+' a descoberto!</div>'):'';
+  const guardarBadge=savedAmt>0
+    ?('<span class="guardar-badge">restam '+vWrap(fmtR(Math.max(0,saldoSemGuardar-savedAmt)))+' livres</span>')
+    :'<span class="guardar-badge" style="font-size:.65rem">clique para definir</span>';
+
+  const sumBtnOn='';
+  const listClass='';
+  const pendCount=m[key].filter(function(e){return !e.paid;}).length;
+  const incomeColor=cls==='dia15'?'var(--blue)':'var(--accent2)';
+  const saldoColor=sld>=0?'var(--accent)':'var(--accent2)';
+  const saldoPrefix=sld<0?'− ':'';
+
+  var html='<div class="q-card">'
+    +'<div class="q-header '+cls+'">'
+      +'<div>'
+        +'<span class="q-badge '+cls+'">'+title+'</span>'
+        +'<div class="q-income-edit">'
+          +'<span style="font-size:.68rem;color:var(--muted)">'+incLabel+':</span>'
+          +'<span class="income-val" onclick="editIncome(\''+mid+'\',\''+key+'\')">'+vWrap(fmtR(income))+'</span>'
+        +'</div>'
+      +'</div>'
+      +'<div style="text-align:right">'
+        +'<div style="font-size:.68rem;color:var(--muted)">Gasto'+filtLabel+'</div>'
+        +'<div style="font-family:var(--mono);font-size:.85rem;color:'+incomeColor+'">'+vWrap(fmtR(spent))+'</div>'
+      +'</div>'
+    +'</div>'
+    +'<div class="sum-bar" id="sumbar_'+key+'_'+mid+'"><span style="font-size:.72rem;color:var(--muted)">Σ Selecionados:</span><span class="sum-total" id="sumtotal_'+key+'_'+mid+'">R$ 0,00</span><span class="sum-count" id="sumcount_'+key+'_'+mid+'">0 itens</span><button class="sum-mode-btn" style="margin-left:auto;color:var(--accent2);border-color:var(--accent2)" onclick="clearSumSel(\''+key+'_'+mid+'\')" >✕ Limpar</button></div>'
+    +'<div class="paid-filter-bar">'
+      +'<span style="font-size:.68rem;color:var(--muted)">Ver:</span>'
+      +'<div class="pf-pill pf-all on" id="pf_all_'+key+'_'+mid+'" onclick="setPaidFilter(\''+mid+'\',\''+key+'\',\'all\')">Todos</div>'
+      +'<div class="pf-pill pf-paid" id="pf_paid_'+key+'_'+mid+'" onclick="setPaidFilter(\''+mid+'\',\''+key+'\',\'paid\')">✓ Pagos</div>'
+      +'<div class="pf-pill pf-pend" id="pf_pend_'+key+'_'+mid+'" onclick="setPaidFilter(\''+mid+'\',\''+key+'\',\'pend\')">⏳ Pendentes</div>'
+      +'<span style="font-size:.62rem;color:var(--muted);margin-left:4px">('+pendCount+' pend.)</span>'
+      +'<button class="sum-mode-btn" id="sumbtn_'+key+'_'+mid+'" onclick="toggleSumMode(\''+key+'_'+mid+'\')" style="margin-left:auto">Σ Somar</button>'
+    +'</div>'
+    +alertHtml
+    +'<div class="expense-list" id="list_'+key+'_'+mid+'">'+rows+'</div>'
+    +'<div class="add-row">'
+      +'<input type="text" id="name_'+key+'_'+mid+'" placeholder="Nome…" onkeydown="if(event.key===\'Enter\')addExp(\''+mid+'\',\''+key+'\')">'
+      +'<input type="number" id="val_'+key+'_'+mid+'" placeholder="Valor" step="0.01" min="0" onkeydown="if(event.key===\'Enter\')addExp(\''+mid+'\',\''+key+'\')">'
+      +'<input type="number" id="par_'+key+'_'+mid+'" placeholder="parc." step="1" min="0" class="par-add" title="Parcelas">'
+      +destSelect('dest_'+key+'_'+mid,'')
+      +catSelect('cat_'+key+'_'+mid,'')
+      +'<button class="add-btn" onclick="addExp(\''+mid+'\',\''+key+'\')">+</button>'
+    +'</div>'
+    +'<div class="guardar-row">'
+      +'<span class="guardar-label">🪙 Guardar:</span>'
+      +'<span class="guardar-val val-blur'+(valVisible?'':' val-hidden')+'" onclick="editGuardar(\''+mid+'\',\''+saveField+'\')">'+fmtR(savedAmt)+'</span>'
+      +guardarBadge
+    +'</div>'
+    +'<div class="q-footer">'
+      +'<button class="btn btn-purple" style="font-size:.7rem;padding:4px 10px" onclick="openCopy(\''+mid+'\',\''+key+'\')">📋 Copiar anterior</button>'
+      +'<div>'
+        +'<span style="font-size:.68rem;color:var(--muted)">Saldo: </span>'
+        +'<span class="q-saldo" style="color:'+saldoColor+'">'+saldoPrefix+vWrap(fmtR(Math.abs(sld)))+'</span>'
+      +'</div>'
+    +'</div>'
+  +'</div>';
+  return html;
 }
 
 function destBadge(dest){
@@ -1023,11 +1082,11 @@ function expRow(monthId,key,e,i){
   const isPaid=!!e.paid;
   const isFiltered=bankFilter&&e.dest!==bankFilter;
   const rowStyle=isFiltered?'opacity:.25;':'';
-  return`<div class="exp-row${isPaid?' paid-row':''}" id="erow_${key}_${monthId}_${i}" style="${rowStyle}">
+  return`<div class="exp-row${isPaid?' paid-row':''}" id="erow_${key}_${monthId}_${i}" style="${rowStyle}" data-val="${e.v}" onclick="if(document.getElementById('list_${key}_${monthId}')&&document.getElementById('list_${key}_${monthId}').classList.contains('sum-mode-active')){toggleSumSel('${monthId}','${key}',${i});}">
     <div class="exp-check${isPaid?' paid':''}" onclick="togglePaid('${monthId}','${key}',${i})" title="${isPaid?'Marcar como não pago':'Marcar como pago'}"></div>
     <div class="exp-name-wrap">
       <span class="exp-name" ondblclick="startEdit('${monthId}','${key}',${i})">${e.n}</span>
-      ${pBadge}${destBadge(e.dest||'')}
+      ${pBadge}${destBadge(e.dest||'')}${catBadge(e.cat||'')}
       <span class="rec-badge${e.rec?' on':''}" onclick="toggleRec('${monthId}','${key}',${i})" title="${e.rec?'Recorrente — clique para desmarcar':'Marcar como recorrente'}">${e.rec?'🔁 fixo':'🔁'}</span>
     </div>
     <span class="exp-amount val-blur${!valVisible?' val-hidden':''}" ondblclick="startEdit('${monthId}','${key}',${i})">${fmtR(e.v)}</span>
@@ -1048,6 +1107,7 @@ function startEdit(monthId,key,i){
       <input class="inline-input val-inp" id="ei_v_${i}" type="number" value="${e.v}" step="0.01">
       <input class="inline-input par-inp" id="ei_p_${i}" type="number" value="${e.p||0}" min="0" placeholder="parc.">
       ${destSelect(`ei_d_${i}`,e.dest||'','inline-input dest-inp')}
+      ${catSelect(`ei_c_${i}`,e.cat||'','inline-input cat-sel')}
       <button class="inline-save" onclick="saveEdit('${monthId}','${key}',${i})">✓</button>
       <button class="icon-btn" onclick="renderQuinzena()" style="color:var(--muted)">✕</button>
     </div>`;
@@ -1063,9 +1123,10 @@ function saveEdit(monthId,key,i){
   const v=parseFloat(document.getElementById(`ei_v_${i}`).value);
   const p=parseInt(document.getElementById(`ei_p_${i}`).value)||0;
   const dest=document.getElementById(`ei_d_${i}`).value;
+  const cat=document.getElementById(`ei_c_${i}`)?.value||'';
   if(!n||isNaN(v)||v<0){toast('⚠️ Dados inválidos!');return;}
   const old={...m[key][i]};
-  m[key][i]={n,v,p,dest,rec:old.rec||false};
+  m[key][i]={n,v,p,dest,cat,rec:old.rec||false};
   addHist('edit',`${m.label} — ${n}: ${fmtR(old.v)} → ${fmtR(v)}`);
   saveData();renderQuinzena();renderKPIs();renderBanks();renderCharts();renderTable();renderTop();
   toast(`✅ ${n} atualizado`,()=>{m[key][i]=old;saveData();renderQuinzena();renderKPIs();renderBanks();renderCharts();renderTable();renderTop();});
@@ -1119,7 +1180,8 @@ function addExp(monthId,key){
   const name=ni.value.trim().toUpperCase();
   const val=parseFloat(vi.value);const par=parseInt(pi.value)||0;const dest=di.value;
   if(!name||isNaN(val)||val<=0){toast('⚠️ Preencha nome e valor!');return;}
-  const m=getM(monthId);const item={n:name,v:val,p:par,dest};
+  const cat=document.getElementById(`cat_${key}_${monthId}`)?.value||'';
+  const m=getM(monthId);const item={n:name,v:val,p:par,dest,cat};
   m[key].push(item);
   addHist('add',`${m.label} — ${key==='d15'?'Dia 15':'Dia 30'}: ${name} (${fmtR(val)})`);
   saveData();renderQuinzena();renderKPIs();renderBanks();renderCharts();renderTable();renderTop();
@@ -1287,16 +1349,16 @@ function minifyData(d){
     i:m.id,l:m.label,y:m.year,
     a:m.vale,b:m.pg,
     ...(m.extra?{e:m.extra}:{}),...(m.save15?{s1:m.save15}:{}),...(m.save30?{s3:m.save30}:{}),
-    f:m.d15.map(x=>({n:x.n,v:x.v,...(x.p?{p:x.p}:{}),...(x.pPaid?{q:x.pPaid}:{}),...(x.dest?{d:x.dest}:{}),...(x.paid?{k:1}:{}),...(x.rec?{r:1}:{})})),
-    g:m.d30.map(x=>({n:x.n,v:x.v,...(x.p?{p:x.p}:{}),...(x.pPaid?{q:x.pPaid}:{}),...(x.dest?{d:x.dest}:{}),...(x.paid?{k:1}:{}),...(x.rec?{r:1}:{})}))
+    f:m.d15.map(x=>({n:x.n,v:x.v,...(x.p?{p:x.p}:{}),...(x.pPaid?{q:x.pPaid}:{}),...(x.dest?{d:x.dest}:{}),...(x.paid?{k:1}:{}),...(x.rec?{r:1}:{}),...(x.cat?{c:x.cat}:{})})),
+    g:m.d30.map(x=>({n:x.n,v:x.v,...(x.p?{p:x.p}:{}),...(x.pPaid?{q:x.pPaid}:{}),...(x.dest?{d:x.dest}:{}),...(x.paid?{k:1}:{}),...(x.rec?{r:1}:{}),...(x.cat?{c:x.cat}:{})}))
   }));
 }
 function expandData(d){
   return d.map(m=>({
     id:m.i,label:m.l,year:m.y,
     vale:m.a,pg:m.b,extra:m.e||0,save15:m.s1||0,save30:m.s3||0,
-    d15:(m.f||[]).map(x=>({n:x.n,v:x.v,p:x.p||0,pPaid:x.q||0,dest:x.d||'',paid:!!x.k,rec:!!x.r})),
-    d30:(m.g||[]).map(x=>({n:x.n,v:x.v,p:x.p||0,pPaid:x.q||0,dest:x.d||'',paid:!!x.k,rec:!!x.r}))
+    d15:(m.f||[]).map(x=>({n:x.n,v:x.v,p:x.p||0,pPaid:x.q||0,dest:x.d||'',paid:!!x.k,rec:!!x.r,cat:x.c||''})),
+    d30:(m.g||[]).map(x=>({n:x.n,v:x.v,p:x.p||0,pPaid:x.q||0,dest:x.d||'',paid:!!x.k,rec:!!x.r,cat:x.c||''}))
   }));
 }
 
@@ -1380,6 +1442,63 @@ function toast(msg,undoFn=null,duration=4000){
   setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),350);},duration);
 }
 
+
+
+// ══ SUM MODE ════════════════════════════════════════════════════════════════
+// cardId = key+'_'+mid  e.g. 'd15_JAN-2026'
+function toggleSumMode(cardId){
+  const parts=cardId.split('_');
+  const key=parts[0];
+  const mid=parts.slice(1).join('_');
+  const bar=document.getElementById('sumbar_'+key+'_'+mid);
+  const btn=document.getElementById('sumbtn_'+key+'_'+mid);
+  const expList=document.getElementById('list_'+key+'_'+mid);
+  if(!btn||!expList)return;
+  const isOn=btn.classList.contains('on');
+  if(isOn){
+    btn.classList.remove('on');
+    bar&&bar.classList.remove('active');
+    expList.classList.remove('sum-mode-active');
+    expList.querySelectorAll('.exp-row.sum-selected').forEach(r=>r.classList.remove('sum-selected'));
+    updateSumDisplay(key+'_'+mid);
+  } else {
+    // deactivate any other active sum first
+    document.querySelectorAll('.sum-mode-btn.on').forEach(b=>{
+      if(b.id&&b.id!==('sumbtn_'+key+'_'+mid))b.click();
+    });
+    btn.classList.add('on');
+    bar&&bar.classList.add('active');
+    expList.classList.add('sum-mode-active');
+    updateSumDisplay(key+'_'+mid);
+  }
+}
+function toggleSumSel(monthId,key,i){
+  const row=document.getElementById('erow_'+key+'_'+monthId+'_'+i);
+  if(!row)return;
+  row.classList.toggle('sum-selected');
+  updateSumDisplay(key+'_'+monthId);
+}
+function updateSumDisplay(cardId){
+  const parts=cardId.split('_');
+  const key=parts[0];
+  const mid=parts.slice(1).join('_');
+  const expList=document.getElementById('list_'+key+'_'+mid);
+  if(!expList)return;
+  const sel=expList.querySelectorAll('.exp-row.sum-selected');
+  let tot=0; sel.forEach(r=>{tot+=parseFloat(r.dataset.val||0);});
+  const te=document.getElementById('sumtotal_'+key+'_'+mid);
+  const ce=document.getElementById('sumcount_'+key+'_'+mid);
+  if(te)te.textContent=fmtR(tot);
+  if(ce)ce.textContent=sel.length+' '+(sel.length===1?'item':'itens');
+}
+function clearSumSel(cardId){
+  const parts=cardId.split('_');
+  const key=parts[0];
+  const mid=parts.slice(1).join('_');
+  const expList=document.getElementById('list_'+key+'_'+mid);
+  if(expList)expList.querySelectorAll('.exp-row.sum-selected').forEach(r=>r.classList.remove('sum-selected'));
+  updateSumDisplay(key+'_'+mid);
+}
 
 // ══ PAID FILTER ════════════════════════════════════════════════════════════
 function setPaidFilter(monthId,key,val){
