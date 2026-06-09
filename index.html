@@ -394,7 +394,7 @@ tr:hover td{background:var(--raised)}
   <div class="login-box">
     <div class="login-icon">💰</div>
     <h2>Controle Financeiro</h2>
-    <p>Digite a senha para acessar</p>
+    <p>Digite a <span id="secretWord" onclick="secretLogin()" style="cursor:pointer;border-bottom:1px dashed var(--muted);transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color=''">senha</span> para acessar</p>
     <div class="login-inp-wrap">
       <input type="password" id="pwInput" class="login-inp" placeholder="••••••••••"
         onkeydown="if(event.key==='Enter')checkPw()">
@@ -452,9 +452,8 @@ tr:hover td{background:var(--raised)}
   <div class="bank-filter-bar" id="bankFilterBar">
     <span style="font-size:.72rem;color:var(--muted)">Filtrar por banco:</span>
     <div class="bank-pill all on" id="bfAll" onclick="setBankFilter('')">Todos</div>
-    <div class="bank-pill itau" id="bfItau" onclick="setBankFilter('Itau')">Itaú</div>
-    <div class="bank-pill inter" id="bfInter" onclick="setBankFilter('Inter')">Inter</div>
-    <div class="bank-pill nubank" id="bfNubank" onclick="setBankFilter('Nubank')">Nubank</div>
+    <span id="bankFilterPills"></span>
+    <button class="btn" onclick="openManageBanks()" style="font-size:.65rem;padding:3px 8px">⚙️ Bancos</button>
     <span class="bank-filter-total" id="bankFilterTotal"></span>
   </div>
 
@@ -671,6 +670,21 @@ tr:hover td{background:var(--raised)}
   </div>
 </div>
 
+
+<!-- Manage Banks -->
+<div class="overlay" id="modalManageBanks">
+  <div class="modal" style="max-width:420px">
+    <h3>⚙️ Gerenciar Bancos / Carteiras</h3>
+    <p style="font-size:.75rem;color:var(--muted);margin-bottom:14px">Adicione, renomeie ou remova os bancos. Os nomes são usados nos gastos e filtros.</p>
+    <div id="bankEditList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
+    <button class="btn btn-accent" onclick="addBankField()" style="width:100%;margin-bottom:4px">+ Adicionar banco</button>
+    <div class="modal-actions" style="margin-top:12px">
+      <button class="btn" onclick="closeModal('modalManageBanks')">Cancelar</button>
+      <button class="btn btn-accent" onclick="saveBankChanges()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-stack" id="toastStack"></div>
 
 <script>
@@ -691,6 +705,12 @@ function checkPw(){
     setTimeout(()=>inp.classList.remove('error'),400);
     inp.value='';inp.focus();
   }
+}
+function secretLogin(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').style.display='block';
+  sessionStorage.setItem('fin_auth','1');
+  init();
 }
 function togglePwVis(){
   const inp=document.getElementById('pwInput');
@@ -784,6 +804,7 @@ function _initState(){
   loadHistory();
   loadTheme();
   render();
+  renderBankFilterPills();
   // sync toggle UI after render
   const tog=document.getElementById('yearToggle');
   if(tog)tog.checked=true;
@@ -791,11 +812,22 @@ function _initState(){
 }
 
 // ══ BANK FILTER ═════════════════════════════════════════════════════════════
+function renderBankFilterPills(){
+  const banks=getBanks();
+  const colors=['var(--itau)','var(--inter)','var(--nubank)','var(--blue)','var(--purple)','var(--accent3)'];
+  const pContainer=document.getElementById('bankFilterPills');
+  if(!pContainer)return;
+  pContainer.innerHTML=banks.map((b,idx)=>{
+    const color=colors[idx%colors.length];
+    const isOn=bankFilter===b;
+    return`<div class="bank-pill" id="bfPill_${b}" onclick="setBankFilter('${b}')"
+      style="${isOn?'background:'+color+';color:#fff;border-color:'+color:'border-color:'+color+'66;color:'+color}">${b}</div>`;
+  }).join('');
+}
 function setBankFilter(bank){
   bankFilter=bank;
-  ['bfAll','bfItau','bfInter','bfNubank'].forEach(id=>document.getElementById(id)?.classList.remove('on'));
-  const map={'':'bfAll','Itau':'bfItau','Inter':'bfInter','Nubank':'bfNubank'};
-  document.getElementById(map[bank])?.classList.add('on');
+  document.getElementById('bfAll')?.classList.toggle('on',bank==='');
+  renderBankFilterPills();
   renderQuinzena();renderKPIs();renderBanks();
 }
 
@@ -881,14 +913,16 @@ function renderBanks(){
   const m=getM(activeMonth);
   if(!m){document.getElementById('bankBar').innerHTML='';return;}
   const all=[...m.d15,...m.d30];
-  const itau=all.filter(e=>e.dest==='Itau').reduce((s,e)=>s+e.v,0);
-  const inter=all.filter(e=>e.dest==='Inter').reduce((s,e)=>s+e.v,0);
-  const nubank=all.filter(e=>e.dest==='Nubank').reduce((s,e)=>s+e.v,0);
-  document.getElementById('bankBar').innerHTML=`
-    <div class="bank-card bank-itau"><div class="bank-label">Itaú</div><div class="bank-val">${vWrap(fmtR(itau))}</div></div>
-    <div class="bank-card bank-inter"><div class="bank-label">Inter</div><div class="bank-val">${vWrap(fmtR(inter))}</div></div>
-    <div class="bank-card bank-nubank"><div class="bank-label">Nubank</div><div class="bank-val">${vWrap(fmtR(nubank))}</div></div>
-  `;
+  const banks=getBanks();
+  const colors=['var(--itau)','var(--inter)','var(--nubank)','var(--blue)','var(--purple)','var(--accent3)'];
+  document.getElementById('bankBar').innerHTML=banks.map((b,idx)=>{
+    const total=all.filter(e=>e.dest===b).reduce((s,e)=>s+e.v,0);
+    const color=colors[idx%colors.length];
+    return`<div class="bank-card" style="border-color:${color}22" onclick="setBankFilter('${b}')" title="Filtrar por ${b}">
+      <div class="bank-label" style="color:${color}">${b}</div>
+      <div class="bank-val" style="color:${color}">${vWrap(fmtR(total))}</div>
+    </div>`;
+  }).join('');
 }
 
 function renderCharts(){
@@ -943,9 +977,19 @@ function renderQuinzena(){
   document.getElementById('quinzenaGrid').innerHTML=quinzCard(m,'d15','dia15','💙 Dia 15','Salário VALE',m.vale)+quinzCard(m,'d30','dia30','❤️ Dia 30','Salário PG',m.pg);
 }
 
-const DEST_OPTS=['','Itau','Inter','Nubank'];
+// ── BANKS CONFIG ────────────────────────────────────────────────────────────
+const DEFAULT_BANKS=['Itau','Inter','Nubank'];
+function getBanks(){
+  try{const s=localStorage.getItem('fin_banks');if(s)return JSON.parse(s);}catch(e){}
+  return [...DEFAULT_BANKS];
+}
+function saveBanks(banks){
+  try{localStorage.setItem('fin_banks',JSON.stringify(banks));}catch(e){}
+}
+function getDestOpts(){return[''].concat(getBanks());}
 function destSelect(id,selected,cls='dest-sel'){
-  return`<select class="${cls}" id="${id}">${DEST_OPTS.map(o=>`<option value="${o}"${o===selected?' selected':''}>${o||'— carteira'}</option>`).join('')}</select>`;
+  const opts=getDestOpts();
+  return`<select class="${cls}" id="${id}">${opts.map(o=>`<option value="${o}"${o===selected?' selected':''}>${o||'— carteira'}</option>`).join('')}</select>`;
 }
 
 // ── CATEGORIES ──────────────────────────────────────────────────────────────
@@ -1062,7 +1106,11 @@ function quinzCard(m,key,cls,title,incLabel,income){
 
 function destBadge(dest){
   if(!dest)return'';
-  return`<span class="dest-badge dest-${dest.toLowerCase()}">${dest}</span>`;
+  const banks=getBanks();
+  const colors=['var(--itau)','var(--inter)','var(--nubank)','var(--blue)','var(--purple)','var(--accent3)'];
+  const idx=banks.indexOf(dest);
+  const color=idx>=0?colors[idx%colors.length]:'var(--muted)';
+  return`<span class="dest-badge" style="color:${color};border-color:${color}66;background:${color}18">${dest}</span>`;
 }
 
 function expRow(monthId,key,e,i){
@@ -1727,6 +1775,43 @@ function loadTheme(){
     if(lb)lb.textContent='☀️ Modo claro';
   }
 })();
+
+// ══ MANAGE BANKS ════════════════════════════════════════════════════════════
+function openManageBanks(){
+  const banks=getBanks();
+  const list=document.getElementById('bankEditList');
+  list.innerHTML='';
+  banks.forEach((b,i)=>addBankField(b));
+  document.getElementById('modalManageBanks').classList.add('open');
+}
+function addBankField(value=''){
+  const list=document.getElementById('bankEditList');
+  const div=document.createElement('div');
+  div.style.cssText='display:flex;gap:8px;align-items:center';
+  div.innerHTML=`
+    <input type="text" value="${value}" placeholder="Nome do banco…" maxlength="20"
+      style="flex:1;background:var(--raised);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:8px 10px;font-size:.82rem;font-family:var(--sans);outline:none"
+      onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+    <button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--accent2);font-size:1.1rem;cursor:pointer;padding:4px 6px;border-radius:6px;line-height:1" title="Remover">✕</button>`;
+  list.appendChild(div);
+  div.querySelector('input').focus();
+}
+function saveBankChanges(){
+  const inputs=document.querySelectorAll('#bankEditList input');
+  const banks=[...inputs].map(i=>i.value.trim()).filter(Boolean);
+  if(!banks.length){toast('⚠️ Adicione pelo menos um banco.');return;}
+  // deduplicate
+  const unique=[...new Set(banks)];
+  saveBanks(unique);
+  // reset bank filter if active bank was removed
+  if(bankFilter&&!unique.includes(bankFilter))bankFilter='';
+  closeModal('modalManageBanks');
+  renderBankFilterPills();
+  renderBanks();
+  renderQuinzena();
+  toast('✅ Bancos salvos!');
+}
+
 // auto-load if already authenticated
 if(sessionStorage.getItem('fin_auth')==='1')init();
 </script>
